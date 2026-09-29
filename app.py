@@ -6,8 +6,7 @@ from src.charts import criar_grafico_confianca, criar_grafico_complexidade, cria
 
 # Configuração da página
 st.set_page_config(
-    page_title="Stack Overflow Survey 2025",
-    page_icon="📊",
+    page_title="Análise Int. Artificial ",
     layout="wide"
 )
 

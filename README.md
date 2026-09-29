@@ -21,14 +21,14 @@ The application features interactive filters, Altair visualizations, and a Foliu
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ia001-data-analysis.git
-cd ia001-data-analysis/notebooks/atividade02
+git clone https://github.com/lucao-py/postgrad-ia001-assignment-02.git
+cd postgrad-ia001-assignment-02
 ```
 
 Create and activate a virtual environment:
 
 ```bash
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
 ```
 
@@ -45,8 +45,6 @@ python -m streamlit run app.py
 ```
 
 Open the local URL displayed in your terminal, usually `http://localhost:8501`.
-
-**Note:** An internet connection is required to retrieve the survey dataset and geographic data.
 
 ## Data Source
 
