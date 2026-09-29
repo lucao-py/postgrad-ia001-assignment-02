@@ -16,10 +16,6 @@ Using data from the **Stack Overflow Developer Survey 2025**, the dashboard inve
 
 The application features interactive filters, Altair visualizations, and a Folium choropleth map.
 
-## Technologies
-
-Python · Pandas · NumPy · Altair · Folium · Streamlit
-
 ## Getting Started
 
 Clone the repository:
