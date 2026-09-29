@@ -1,5 +1,8 @@
 import pandas as pd
 import streamlit as st
+import json
+from urllib.request import urlopen
+
 
 URL_DADOS = (
     "https://media.githubusercontent.com/media/"
@@ -58,3 +61,18 @@ def preparar_dados(df):
     )
 
     return df_analysis   
+
+
+@st.cache_data(show_spinner="Carregando mapa-múndi...")
+def carregar_geojson():
+
+    url_geojson = (
+        'https://raw.githubusercontent.com/'
+        'python-visualization/folium/main/'
+        'examples/data/world-countries.json'
+    )
+
+    with urlopen(url_geojson) as resposta:
+        geojson_paises = json.load(resposta)
+
+    return geojson_paises

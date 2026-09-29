@@ -1,5 +1,9 @@
 import altair as alt
 import numpy as np
+import folium
+import pycountry
+
+from copy import deepcopy
 
 def criar_grafico_confianca(df):
 
@@ -216,7 +220,7 @@ def criar_grafico_experiencia(df):
         .configure_view(stroke=None)
     )
 
-    return 
+    return grafico_wexp
 
 def criar_grafico_agentes(df):
 
@@ -351,11 +355,16 @@ def criar_grafico_agentes(df):
     )
 
     # Construção do gráfico
+    # Base
     base = alt.Chart(df_agents_plot).encode(
         y=alt.Y(
             'Uso:N',
             title='Frequência de uso de agentes',
             sort=ordem_uso,
+            scale=alt.Scale(
+                paddingInner=0.50,
+                paddingOuter=0.25
+            ),
             axis=alt.Axis(
                 labelFontSize=12,
                 titleFontSize=13,
@@ -366,7 +375,7 @@ def criar_grafico_agentes(df):
 
     # Barras
     barras = base.mark_bar(
-        size=40,
+        size=28,
         stroke='white',
         strokeWidth=1
     ).encode(
@@ -428,21 +437,17 @@ def criar_grafico_agentes(df):
     )
 
     # Gráfico final
+    # Gráfico final
     grafico_agents = (
         (barras + texto)
         .properties(
-            title=alt.TitleParams(
-                text='Mudança percebida no trabalho por frequência de uso de agentes',
-                subtitle='Distribuição percentual dentro de cada grupo de frequência de uso',
-                anchor='start',
-                fontSize=16,
-                subtitleFontSize=12
-            ),
-            width=760,
-            height=230
+            width=900,
+            height=280
         )
         .configure_view(stroke=None)
-        .configure_axis(domain=False)
+        .configure_axis(
+            domain=False
+        )
         .configure_legend(
             titleLimit=180,
             labelLimit=180
@@ -450,3 +455,232 @@ def criar_grafico_agentes(df):
     )
 
     return grafico_agents
+
+def criar_mapa_ia(df, geojson_paises, min_respondentes=30):
+
+    # Preparação dos dados
+    df_geo = (
+        df[['ResponseId', 'Country', 'AISelect']]
+        .dropna(subset=['Country', 'AISelect'])
+        .copy()
+    )
+
+    # Verificação de dados disponíveis
+    if df_geo.empty:
+        return None
+
+    # Identificação dos respondentes que utilizam IA diariamente
+    df_geo['Uso_diario'] = (
+        df_geo['AISelect'] == 'Yes, I use AI tools daily'
+    )
+
+    # Padronização dos países utilizando códigos ISO-3
+    aliases_paises = {
+        'United States of America': 'USA',
+        'United Kingdom of Great Britain and Northern Ireland': 'GBR',
+        'South Korea': 'KOR',
+        'North Korea': 'PRK',
+        'Taiwan': 'TWN',
+        'Hong Kong (S.A.R.)': 'HKG',
+        'Macao (S.A.R.)': 'MAC',
+        'Iran, Islamic Republic of...': 'IRN',
+        'Venezuela, Bolivarian Republic of...': 'VEN',
+        'Bolivia, Plurinational State of...': 'BOL',
+        'Congo, Republic of the...': 'COG',
+        'Democratic Republic of the Congo': 'COD',
+        'Kosovo': 'XKX'
+    }
+
+    def obter_iso3(pais):
+
+        if pais in aliases_paises:
+            return aliases_paises[pais]
+
+        try:
+            return pycountry.countries.lookup(pais).alpha_3
+
+        except LookupError:
+            return None
+
+    mapeamento_paises = {
+        pais: obter_iso3(pais)
+        for pais in df_geo['Country'].unique()
+    }
+
+    df_geo['ISO3'] = df_geo['Country'].map(mapeamento_paises)
+
+    # Agregação dos dados por país
+    df_geo_plot = (
+        df_geo
+        .dropna(subset=['ISO3'])
+        .groupby('ISO3', as_index=False)
+        .agg(
+            Country=('Country', 'first'),
+            Respondentes=('ResponseId', 'size'),
+            Uso_diario=('Uso_diario', 'sum')
+        )
+    )
+
+    # Verificação de dados disponíveis após a padronização
+    if df_geo_plot.empty:
+        return None
+
+    df_geo_plot['Percentual'] = (
+        df_geo_plot['Uso_diario'] /
+        df_geo_plot['Respondentes'] * 100
+    )
+
+    assert df_geo_plot['ISO3'].is_unique
+
+    # Critério de amostra mínima
+    df_geo_plot['Amostra_suficiente'] = (
+        df_geo_plot['Respondentes'] >= min_respondentes
+    )
+
+    # Cópia independente do GeoJSON
+    geojson_mapa = deepcopy(geojson_paises)
+
+    # Identificação dos países presentes no mapa
+    codigos_mapa = {
+        feature['id']
+        for feature in geojson_mapa['features']
+    }
+
+    # Dados utilizados na coloração
+    df_geo_mapa = (
+        df_geo_plot
+        .loc[
+            df_geo_plot['Amostra_suficiente'] &
+            df_geo_plot['ISO3'].isin(codigos_mapa)
+        ]
+        .copy()
+    )
+
+    # Informações exibidas no tooltip
+    dados_tooltip = (
+        df_geo_plot
+        .set_index('ISO3')
+        .to_dict(orient='index')
+    )
+
+    for feature in geojson_mapa['features']:
+
+        iso3 = feature['id']
+        dados = dados_tooltip.get(iso3)
+
+        if dados is None:
+
+            feature['properties']['Taxa'] = 'Sem dados'
+            feature['properties']['Respondentes'] = '—'
+            feature['properties']['Diarios'] = '—'
+
+        elif dados['Respondentes'] < min_respondentes:
+
+            feature['properties']['Taxa'] = 'Amostra insuficiente'
+
+            feature['properties']['Respondentes'] = str(
+                dados['Respondentes']
+            )
+
+            feature['properties']['Diarios'] = str(
+                dados['Uso_diario']
+            )
+
+        else:
+
+            feature['properties']['Taxa'] = (
+                f"{dados['Percentual']:.1f}%"
+            )
+
+            feature['properties']['Respondentes'] = str(
+                dados['Respondentes']
+            )
+
+            feature['properties']['Diarios'] = str(
+                dados['Uso_diario']
+            )
+
+    # Construção do mapa
+    mapa_ia = folium.Map(
+        location=[15, 0],
+        zoom_start=2,
+
+        tiles=None,
+
+        width='100%',
+        height=620,
+
+        zoom_control=False,
+        scroll_wheel_zoom=False,
+        dragging=False,
+        double_click_zoom=False,
+        touch_zoom=False,
+        box_zoom=False,
+        keyboard=False,
+
+        zoom_snap=0.1
+    )
+
+    # Mapa coroplético
+    coropletico = folium.Choropleth(
+        geo_data=geojson_mapa,
+        data=df_geo_mapa,
+
+        columns=['ISO3', 'Percentual'],
+        key_on='feature.id',
+
+        fill_color='Blues',
+        fill_opacity=0.85,
+
+        line_color='#FFFFFF',
+        line_weight=0.6,
+        line_opacity=0.8,
+
+        nan_fill_color='#E5E7EB',
+        nan_fill_opacity=0.85,
+
+        legend_name='Respondentes que utilizam IA diariamente (%)',
+
+        bins=[0, 20, 40, 60, 80, 100],
+
+        highlight=False
+    ).add_to(mapa_ia)
+
+    # Tooltip interativo
+    folium.GeoJsonTooltip(
+        fields=[
+            'name',
+            'Taxa',
+            'Respondentes',
+            'Diarios'
+        ],
+
+        aliases=[
+            'País:',
+            'Uso diário de IA:',
+            'Respondentes:',
+            'Usuários diários:'
+        ],
+
+        sticky=False,
+        labels=True,
+
+        style=(
+            'background-color: white;'
+            'font-family: Arial;'
+            'font-size: 12px;'
+            'padding: 10px;'
+        )
+
+    ).add_to(coropletico.geojson)
+
+    # Enquadramento automático do mundo
+    mapa_ia.fit_bounds(
+        bounds=[
+            [-60, -180],
+            [84, 180]
+        ],
+        padding=(5, 5)
+    )
+
+    return mapa_ia

@@ -1,8 +1,8 @@
 import streamlit as st
-
+import streamlit.components.v1 as components
 from src.data import carregar_dados
-from src.data import carregar_dados, preparar_dados
-from src.charts import criar_grafico_confianca, criar_grafico_complexidade, criar_grafico_experiencia, criar_grafico_agentes
+from src.data import carregar_dados, preparar_dados, carregar_geojson
+from src.charts import criar_grafico_confianca, criar_grafico_complexidade, criar_grafico_experiencia, criar_grafico_agentes, criar_mapa_ia
 
 # Configuração da página
 st.set_page_config(
@@ -15,6 +15,7 @@ st.set_page_config(
 # Carregamento dos dados
 df = carregar_dados()
 df_analysis = preparar_dados(df)
+geojson_paises = carregar_geojson()
 
 
 # Cabeçalho
@@ -83,11 +84,15 @@ col3.metric(
 
 
 # Organização das análises
-aba1, aba2, aba3 = st.tabs([
-    "Percepção sobre IA",
-    "Perfil e agentes",
-    "Análise geográfica"
-])
+aba1, aba2, aba3 = st.tabs(
+    [
+        "Percepção sobre IA",
+        "Perfil e agentes",
+        "Análise geográfica"
+    ],
+    on_change="rerun",
+    key="abas_dashboard"
+)
 
 with aba1:
 
@@ -114,8 +119,11 @@ with aba1:
         )
 
 with aba2:
+
     st.subheader('Experiência profissional por frequência de uso de IA')
+
     grafico = criar_grafico_experiencia(df_filtrado)
+
     if grafico is not None:
         st.altair_chart(
             grafico,
@@ -131,18 +139,43 @@ with aba2:
 
     st.subheader('Mudança percebida no trabalho pelo uso de agentes de IA')
 
+    st.caption(
+        'Distribuição percentual dentro de cada grupo de frequência de uso.'
+    )
+
     grafico = criar_grafico_agentes(df_filtrado)
 
     if grafico is not None:
         st.altair_chart(
             grafico,
-            use_container_width=True
+            use_container_width=False
         )
     else:
         st.info(
             'Não há respostas disponíveis sobre o uso de agentes de IA '
             'com os filtros selecionados.'
         )
-with aba3:
-    st.subheader("Distribuição geográfica do uso de IA")
-    st.info("Aqui entraremos com o mapa Folium.")
+if aba3.open:
+    with aba3:
+
+        st.subheader('Distribuição geográfica do uso diário de IA')
+
+        st.caption(
+            'Percentual de respondentes que utilizam ferramentas de IA '
+            'diariamente, por país.'
+        )
+
+        mapa = criar_mapa_ia(
+            df_filtrado,
+            geojson_paises,
+            min_respondentes=min_respondentes
+        )
+
+        if mapa is not None:
+            components.html(
+                mapa.get_root().render(),
+                height=640,
+                scrolling=False
+            )
+        else:
+            st.info('Não há dados disponíveis para esta análise.')
