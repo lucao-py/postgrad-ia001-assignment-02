@@ -5,6 +5,125 @@ import pycountry
 
 from copy import deepcopy
 
+
+# ============================================================
+# PADRÕES VISUAIS E CATEGORIAS
+# ============================================================
+
+AZUL_PRINCIPAL = '#4C78A8'
+AZUL_MEDIO = '#8FB6D9'
+AZUL_ESCURO = '#3F78B5'
+
+TEXTO_ESCURO = '#17324D'
+CINZA = '#7D8590'
+
+# Espaço reservado aos rótulos dos eixos Y
+LIMITE_ROTULO_Y = 240
+
+
+# Padronização da frequência de uso em todos os gráficos
+ROTULOS_USO = {
+    'Não usa e não pretende': 'Não usa / não pretende',
+    'Não usa, mas pretende': 'Não usa / pretende',
+    'Uso ocasional': 'Uso ocasional',
+    'Uso semanal': 'Uso semanal',
+    'Uso diário': 'Uso diário'
+}
+
+ORDEM_USO = [
+    'Não usa / não pretende',
+    'Não usa / pretende',
+    'Uso ocasional',
+    'Uso semanal',
+    'Uso diário'
+]
+
+
+# Confiança: escala divergente
+ORDEM_CONFIANCA = [
+    'Desconfia muito',
+    'Desconfia parcialmente',
+    'Neutro',
+    'Confia parcialmente',
+    'Confia muito'
+]
+
+CORES_CONFIANCA = [
+    '#B54747',
+    '#E08B8B',
+    '#7D8590',
+    '#8FB6D9',
+    '#3F78B5'
+]
+
+
+# Capacidade em tarefas complexas
+ORDEM_COMPLEXIDADE = [
+    'Muito ruim',
+    'Ruim',
+    'Neutro',
+    'Boa, com limitações',
+    'Muito boa',
+    'Não utiliza / não sabe'
+]
+
+
+# Agentes
+ORDEM_USO_AGENTES = [
+    'Uso ocasional',
+    'Uso semanal',
+    'Uso diário'
+]
+
+ORDEM_MUDANCA = [
+    'Nenhuma ou mínima',
+    'Moderada',
+    'Grande',
+    'Mudança por outros fatores'
+]
+
+CORES_MUDANCA = [
+    '#C9D8E6',
+    '#8FB6D9',
+    '#3F78B5',
+    '#8C8C8C'
+]
+
+
+# Países que precisam de tratamento específico
+ALIASES_PAISES = {
+    'United States of America': 'USA',
+    'United Kingdom of Great Britain and Northern Ireland': 'GBR',
+    'South Korea': 'KOR',
+    'North Korea': 'PRK',
+    'Taiwan': 'TWN',
+    'Hong Kong (S.A.R.)': 'HKG',
+    'Macao (S.A.R.)': 'MAC',
+    'Iran, Islamic Republic of...': 'IRN',
+    'Venezuela, Bolivarian Republic of...': 'VEN',
+    'Bolivia, Plurinational State of...': 'BOL',
+    'Congo, Republic of the...': 'COG',
+    'Democratic Republic of the Congo': 'COD',
+    'Kosovo': 'XKX'
+}
+
+
+def obter_iso3(pais):
+
+    if pais in ALIASES_PAISES:
+        return ALIASES_PAISES[pais]
+
+    try:
+        return pycountry.countries.lookup(pais).alpha_3
+
+    except LookupError:
+        return None
+
+
+# ============================================================
+# 1. CONFIANÇA NA PRECISÃO DA IA
+# ============================================================
+
 def criar_grafico_confianca(df):
 
     # Preparação dos dados
@@ -12,6 +131,46 @@ def criar_grafico_confianca(df):
         df[['ResponseId', 'AISelect_pt', 'AIAcc_pt']]
         .dropna(subset=['AISelect_pt', 'AIAcc_pt'])
         .copy()
+    )
+
+    if df_trust_precision.empty:
+        return None
+
+    # Padronização dos rótulos de frequência
+    df_trust_precision['Uso'] = (
+        df_trust_precision['AISelect_pt']
+        .replace(ROTULOS_USO)
+    )
+
+    # Agregação
+    df_trust_plot = (
+        df_trust_precision
+        .groupby(['Uso', 'AIAcc_pt'])
+        .size()
+        .reset_index(name='Quantidade')
+    )
+
+    df_trust_plot['Total_grupo'] = (
+        df_trust_plot
+        .groupby('Uso')['Quantidade']
+        .transform('sum')
+    )
+
+    df_trust_plot['Percentual'] = (
+        df_trust_plot['Quantidade']
+        / df_trust_plot['Total_grupo']
+        * 100
+    )
+
+    # Garante a ordem correta dos segmentos
+    ordem_confianca = {
+        categoria: indice
+        for indice, categoria in enumerate(ORDEM_CONFIANCA)
+    }
+
+    df_trust_plot['Ordem_confianca'] = (
+        df_trust_plot['AIAcc_pt']
+        .map(ordem_confianca)
     )
 
     # Seleção interativa pela legenda
@@ -22,41 +181,97 @@ def criar_grafico_confianca(df):
 
     # Construção do gráfico
     grafico = (
-        alt.Chart(df_trust_precision)
-        .mark_bar()
+        alt.Chart(df_trust_plot)
+        .mark_bar(
+            size=34
+        )
         .encode(
             x=alt.X(
-                'count():Q',
-                stack='normalize',
-                title='Proporção de respondentes',
-                axis=alt.Axis(format='%')
+                'Percentual:Q',
+                stack='zero',
+                title='Respondentes dentro de cada grupo (%)',
+                scale=alt.Scale(
+                    domain=[0, 100]
+                ),
+                axis=alt.Axis(
+                    labelExpr="datum.value + '%'",
+                    tickCount=6,
+                    grid=False
+                )
             ),
             y=alt.Y(
-                'AISelect_pt:N',
-                title='Frequência de uso de IA'
+                'Uso:N',
+                title='Frequência de uso de IA',
+                sort=ORDEM_USO,
+                axis=alt.Axis(
+                    labelFontSize=12,
+                    labelPadding=10,
+                    labelLimit=LIMITE_ROTULO_Y
+                )
             ),
             color=alt.Color(
                 'AIAcc_pt:N',
-                title='Confiança na precisão'
+                title='Confiança na precisão',
+                scale=alt.Scale(
+                    domain=ORDEM_CONFIANCA,
+                    range=CORES_CONFIANCA
+                ),
+                legend=alt.Legend(
+                    orient='right',
+                    titleFontSize=12,
+                    labelFontSize=11,
+                    symbolType='square',
+                    symbolSize=120
+                )
+            ),
+            order=alt.Order(
+                'Ordem_confianca:Q'
             ),
             opacity=alt.when(selection)
-                .then(alt.value(1))
-                .otherwise(alt.value(0.2)),
+            .then(alt.value(1))
+            .otherwise(alt.value(0.22)),
             tooltip=[
-                alt.Tooltip('AISelect_pt:N', title='Frequência'),
-                alt.Tooltip('AIAcc_pt:N', title='Confiança'),
-                alt.Tooltip('count():Q', title='Respondentes')
+                alt.Tooltip(
+                    'Uso:N',
+                    title='Frequência'
+                ),
+                alt.Tooltip(
+                    'AIAcc_pt:N',
+                    title='Confiança'
+                ),
+                alt.Tooltip(
+                    'Quantidade:Q',
+                    title='Respondentes',
+                    format=',d'
+                ),
+                alt.Tooltip(
+                    'Percentual:Q',
+                    title='Percentual (%)',
+                    format='.1f'
+                )
             ]
         )
         .add_params(selection)
         .properties(
-            title='Confiança na precisão da IA por frequência de uso',
-            width=750,
-            height=450
+            width='container',
+            height=300
+        )
+        .configure_view(
+            stroke=None
+        )
+        .configure_axis(
+            domain=False,
+            labelFontSize=11,
+            titleFontSize=13
         )
     )
 
     return grafico
+
+
+# ============================================================
+# 2. CAPACIDADE DA IA EM TAREFAS COMPLEXAS
+# ============================================================
 
 def criar_grafico_complexidade(df):
 
@@ -70,87 +285,137 @@ def criar_grafico_complexidade(df):
     if df_complexidade.empty:
         return None
 
-    # Agregação dos dados
-    df_calc_complext = (
+    # Padronização dos rótulos de frequência
+    df_complexidade['Uso'] = (
+        df_complexidade['AISelect_pt']
+        .replace(ROTULOS_USO)
+    )
+
+    # Agregação
+    df_calc_complex = (
         df_complexidade
-        .groupby(['AISelect_pt', 'AIComplex_pt'])
+        .groupby(['Uso', 'AIComplex_pt'])
         .size()
         .reset_index(name='Quantidade')
     )
 
-    df_calc_complext['Total_grupo'] = (
-        df_calc_complext
-        .groupby('AISelect_pt')['Quantidade']
+    df_calc_complex['Total_grupo'] = (
+        df_calc_complex
+        .groupby('Uso')['Quantidade']
         .transform('sum')
     )
 
-    df_calc_complext['Percentual'] = (
-        df_calc_complext['Quantidade'] /
-        df_calc_complext['Total_grupo'] * 100
+    df_calc_complex['Percentual'] = (
+        df_calc_complex['Quantidade']
+        / df_calc_complex['Total_grupo']
+        * 100
     )
 
-    # Rótulos dos percentuais
-    df_calc_complext['Rotulo'] = (
-        df_calc_complext['Percentual']
+    # Rótulos
+    df_calc_complex['Rotulo'] = (
+        df_calc_complex['Percentual']
         .map(lambda x: f'{x:.1f}%')
     )
 
-    # Construção do gráfico
-    base = alt.Chart(df_calc_complext).encode(
+    # Base
+    base = alt.Chart(df_calc_complex).encode(
         x=alt.X(
             'AIComplex_pt:N',
             title='Capacidade percebida',
-            axis=alt.Axis(labelAngle=0, labelLimit=150)
+            sort=ORDEM_COMPLEXIDADE,
+            axis=alt.Axis(
+                labelAngle=0,
+                labelLimit=170,
+                labelFontSize=11,
+                labelPadding=8
+            )
         ),
         y=alt.Y(
-            'AISelect_pt:N',
-            title='Frequência de uso',
-            axis=alt.Axis(labelFontSize=12)
+            'Uso:N',
+            title='Frequência de uso de IA',
+            sort=ORDEM_USO,
+            axis=alt.Axis(
+                labelFontSize=12,
+                labelPadding=10,
+                labelLimit=LIMITE_ROTULO_Y
+            )
         )
     )
 
+    # Heatmap
     heatmap = base.mark_rect(
-        stroke='white',
+        stroke='#0E1117',
         strokeWidth=2
     ).encode(
         color=alt.Color(
             'Percentual:Q',
             title='Respondentes (%)',
-            scale=alt.Scale(scheme='blues')
+            scale=alt.Scale(
+                scheme='blues'
+            ),
+            legend=alt.Legend(
+                orient='right',
+                titleFontSize=12,
+                labelFontSize=11
+            )
         ),
         tooltip=[
-            alt.Tooltip('AISelect_pt:N', title='Frequência'),
-            alt.Tooltip('AIComplex_pt:N', title='Percepção'),
-            alt.Tooltip('Quantidade:Q', title='Respondentes', format=',d'),
-            alt.Tooltip('Percentual:Q', title='Percentual (%)', format='.1f')
+            alt.Tooltip(
+                'Uso:N',
+                title='Frequência'
+            ),
+            alt.Tooltip(
+                'AIComplex_pt:N',
+                title='Percepção'
+            ),
+            alt.Tooltip(
+                'Quantidade:Q',
+                title='Respondentes',
+                format=',d'
+            ),
+            alt.Tooltip(
+                'Percentual:Q',
+                title='Percentual (%)',
+                format='.1f'
+            )
         ]
     )
 
+    # Percentuais dentro das células
     texto = base.mark_text(
-        fontSize=12,
+        fontSize=11,
         fontWeight='bold'
     ).encode(
         text='Rotulo:N',
         color=alt.condition(
-            alt.datum.Percentual > 30,
+            alt.datum.Percentual >= 30,
             alt.value('white'),
-            alt.value('#17324D')
+            alt.value(TEXTO_ESCURO)
         )
     )
 
+    # Gráfico final
     grafico = (
         (heatmap + texto)
         .properties(
-            title='Percepção da capacidade da IA em tarefas complexas',
-            width=800,
-            height=400
+            width='container',
+            height=300
         )
-        .configure_view(strokeWidth=0)
-        .configure_axis(domain=False)
+        .configure_view(
+            stroke=None
+        )
+        .configure_axis(
+            domain=False,
+            titleFontSize=13
+        )
     )
 
     return grafico
 
+
+# ============================================================
+# 3. EXPERIÊNCIA PROFISSIONAL
+# ============================================================
 
 def criar_grafico_experiencia(df):
 
@@ -168,59 +433,66 @@ def criar_grafico_experiencia(df):
         .copy()
     )
 
-    # Verificação de dados disponíveis
     if df_wexp_select.empty:
         return None
 
-    # Ordenação das categorias
-    ordem_uso = [
-        'Não usa e não pretende',
-        'Não usa, mas pretende',
-        'Uso ocasional',
-        'Uso semanal',
-        'Uso diário'
-    ]
+    # Padronização dos rótulos de frequência
+    df_wexp_select['Uso'] = (
+        df_wexp_select['AISelect_pt']
+        .replace(ROTULOS_USO)
+    )
 
     # Construção do gráfico
-    grafico_wexp = (
+    grafico = (
         alt.Chart(df_wexp_select)
         .mark_boxplot(
             extent=1.5,
-            size=35,
-            color='#4C78A8'
+            size=30,
+            color=AZUL_PRINCIPAL
         )
         .encode(
             x=alt.X(
                 'WorkExp:Q',
                 title='Experiência profissional (anos)',
+                scale=alt.Scale(
+                    zero=True
+                ),
                 axis=alt.Axis(
-                    labelFontSize=12,
-                    titleFontSize=13
+                    labelFontSize=11,
+                    titleFontSize=13,
+                    grid=True,
+                    gridOpacity=0.12
                 )
             ),
             y=alt.Y(
-                'AISelect_pt:N',
+                'Uso:N',
                 title='Frequência de uso de IA',
-                sort=ordem_uso,
+                sort=ORDEM_USO,
                 axis=alt.Axis(
                     labelFontSize=12,
-                    labelPadding=10
+                    labelPadding=10,
+                    labelLimit=LIMITE_ROTULO_Y
                 )
             )
         )
         .properties(
-            title=alt.TitleParams(
-                text='Experiência profissional por frequência de uso de IA',
-                subtitle='Distribuição dos anos de experiência entre os respondentes de cada grupo',
-                anchor='middle'
-            ),
-            width=800,
-            height=350
+            width='container',
+            height=310
         )
-        .configure_view(stroke=None)
+        .configure_view(
+            stroke=None
+        )
+        .configure_axis(
+            domain=False
+        )
     )
 
-    return grafico_wexp
+    return grafico
+
+
+# ============================================================
+# 4. MUDANÇA PERCEBIDA PELO USO DE AGENTES
+# ============================================================
 
 def criar_grafico_agentes(df):
 
@@ -234,11 +506,13 @@ def criar_grafico_agentes(df):
     # Selecionar somente respondentes que utilizam agentes de IA
     df_agents = (
         df_agents
-        .loc[df_agents['AIAgents'].str.startswith('Yes', na=False)]
+        .loc[
+            df_agents['AIAgents']
+            .str.startswith('Yes', na=False)
+        ]
         .copy()
     )
 
-    # Verificação de dados disponíveis
     if df_agents.empty:
         return None
 
@@ -249,7 +523,10 @@ def criar_grafico_agentes(df):
         [
             frequencia.str.contains('daily'),
             frequencia.str.contains('weekly'),
-            frequencia.str.contains('monthly|infrequently', regex=True)
+            frequencia.str.contains(
+                'monthly|infrequently',
+                regex=True
+            )
         ],
         [
             'Uso diário',
@@ -264,10 +541,19 @@ def criar_grafico_agentes(df):
 
     df_agents['Mudanca'] = np.select(
         [
-            mudanca.str.contains('non-ai|non ai|other factors', regex=True),
-            mudanca.str.contains('not at all|minimal', regex=True),
+            mudanca.str.contains(
+                'non-ai|non ai|other factors',
+                regex=True
+            ),
+            mudanca.str.contains(
+                'not at all|minimal',
+                regex=True
+            ),
             mudanca.str.contains('somewhat'),
-            mudanca.str.contains('great extent|significant', regex=True)
+            mudanca.str.contains(
+                'great extent|significant',
+                regex=True
+            )
         ],
         [
             'Mudança por outros fatores',
@@ -280,22 +566,26 @@ def criar_grafico_agentes(df):
 
     # Verificação das categorias
     nao_classificados = df_agents.loc[
-        (df_agents['Uso'] == 'Não classificado') |
-        (df_agents['Mudanca'] == 'Não classificado')
+        (df_agents['Uso'] == 'Não classificado')
+        | (df_agents['Mudanca'] == 'Não classificado')
     ]
 
     if not nao_classificados.empty:
+
         categorias = (
-            nao_classificados[['AIAgents', 'AIAgentChange']]
+            nao_classificados[
+                ['AIAgents', 'AIAgentChange']
+            ]
             .drop_duplicates()
             .to_dict(orient='records')
         )
 
         raise ValueError(
-            f'Existem categorias que precisam ser classificadas: {categorias}'
+            'Existem categorias que precisam ser '
+            f'classificadas: {categorias}'
         )
 
-    # Agregação dos dados
+    # Agregação
     df_agents_plot = (
         df_agents
         .groupby(['Uso', 'Mudanca'])
@@ -304,30 +594,26 @@ def criar_grafico_agentes(df):
     )
 
     df_agents_plot['Total_grupo'] = (
-        df_agents_plot.groupby('Uso')['Quantidade'].transform('sum')
+        df_agents_plot
+        .groupby('Uso')['Quantidade']
+        .transform('sum')
     )
 
     df_agents_plot['Percentual'] = (
-        df_agents_plot['Quantidade'] /
-        df_agents_plot['Total_grupo'] * 100
+        df_agents_plot['Quantidade']
+        / df_agents_plot['Total_grupo']
+        * 100
     )
 
-    # Ordenação das categorias
-    ordem_uso = [
-        'Uso diário',
-        'Uso semanal',
-        'Uso ocasional'
-    ]
+    # Ordenação das categorias de mudança
+    ordem_mudanca = {
+        categoria: indice
+        for indice, categoria in enumerate(ORDEM_MUDANCA)
+    }
 
-    ordem_mudanca = [
-        'Nenhuma ou mínima',
-        'Moderada',
-        'Grande',
-        'Mudança por outros fatores'
-    ]
-
-    df_agents_plot['Ordem'] = df_agents_plot['Mudanca'].map(
-        {categoria: i for i, categoria in enumerate(ordem_mudanca)}
+    df_agents_plot['Ordem'] = (
+        df_agents_plot['Mudanca']
+        .map(ordem_mudanca)
     )
 
     df_agents_plot = (
@@ -336,53 +622,67 @@ def criar_grafico_agentes(df):
         .copy()
     )
 
-    # Cálculo das posições dos segmentos
+    # Posição dos segmentos
     df_agents_plot['Fim'] = (
-        df_agents_plot.groupby('Uso')['Percentual'].cumsum()
+        df_agents_plot
+        .groupby('Uso')['Percentual']
+        .cumsum()
     )
 
     df_agents_plot['Inicio'] = (
-        df_agents_plot['Fim'] - df_agents_plot['Percentual']
+        df_agents_plot['Fim']
+        - df_agents_plot['Percentual']
     )
 
     df_agents_plot['Centro'] = (
-        (df_agents_plot['Inicio'] + df_agents_plot['Fim']) / 2
+        (
+            df_agents_plot['Inicio']
+            + df_agents_plot['Fim']
+        )
+        / 2
     )
 
-    # Rótulos dos percentuais
-    df_agents_plot['Rotulo'] = df_agents_plot['Percentual'].apply(
-        lambda x: f'{x:.1f}%' if x >= 6 else ''
+    # Percentuais exibidos dentro das barras
+    df_agents_plot['Rotulo'] = (
+        df_agents_plot['Percentual']
+        .apply(
+            lambda x: f'{x:.1f}%'
+            if x >= 6
+            else ''
+        )
     )
 
-    # Construção do gráfico
     # Base
     base = alt.Chart(df_agents_plot).encode(
         y=alt.Y(
             'Uso:N',
             title='Frequência de uso de agentes',
-            sort=ordem_uso,
+            sort=ORDEM_USO_AGENTES,
             scale=alt.Scale(
-                paddingInner=0.50,
+                paddingInner=0.55,
                 paddingOuter=0.25
             ),
             axis=alt.Axis(
                 labelFontSize=12,
                 titleFontSize=13,
-                labelPadding=10
+                labelPadding=10,
+                labelLimit=LIMITE_ROTULO_Y
             )
         )
     )
 
     # Barras
     barras = base.mark_bar(
-        size=28,
-        stroke='white',
+        size=30,
+        stroke='#0E1117',
         strokeWidth=1
     ).encode(
         x=alt.X(
             'Inicio:Q',
             title='Respondentes dentro de cada grupo (%)',
-            scale=alt.Scale(domain=[0, 100]),
+            scale=alt.Scale(
+                domain=[0, 100]
+            ),
             axis=alt.Axis(
                 labelExpr="datum.value + '%'",
                 labelFontSize=11,
@@ -396,29 +696,42 @@ def criar_grafico_agentes(df):
             'Mudanca:N',
             title='Mudança percebida',
             scale=alt.Scale(
-                domain=ordem_mudanca,
-                range=[
-                    '#C9D8E6',
-                    '#8FB6D9',
-                    '#3F78B5',
-                    '#8C8C8C'
-                ]
+                domain=ORDEM_MUDANCA,
+                range=CORES_MUDANCA
             ),
             legend=alt.Legend(
                 orient='right',
                 titleFontSize=12,
                 labelFontSize=11,
                 symbolType='square',
-                symbolSize=140,
-                padding=10
+                symbolSize=120,
+                padding=12
             )
         ),
         tooltip=[
-            alt.Tooltip('Uso:N', title='Frequência'),
-            alt.Tooltip('Mudanca:N', title='Mudança percebida'),
-            alt.Tooltip('Quantidade:Q', title='Respondentes', format=',d'),
-            alt.Tooltip('Total_grupo:Q', title='Total do grupo', format=',d'),
-            alt.Tooltip('Percentual:Q', title='Percentual (%)', format='.1f')
+            alt.Tooltip(
+                'Uso:N',
+                title='Frequência'
+            ),
+            alt.Tooltip(
+                'Mudanca:N',
+                title='Mudança percebida'
+            ),
+            alt.Tooltip(
+                'Quantidade:Q',
+                title='Respondentes',
+                format=',d'
+            ),
+            alt.Tooltip(
+                'Total_grupo:Q',
+                title='Total do grupo',
+                format=',d'
+            ),
+            alt.Tooltip(
+                'Percentual:Q',
+                title='Percentual (%)',
+                format='.1f'
+            )
         ]
     )
 
@@ -437,26 +750,36 @@ def criar_grafico_agentes(df):
     )
 
     # Gráfico final
-    # Gráfico final
-    grafico_agents = (
+    grafico = (
         (barras + texto)
         .properties(
-            width=900,
-            height=280
+            width='container',
+            height=250
         )
-        .configure_view(stroke=None)
+        .configure_view(
+            stroke=None
+        )
         .configure_axis(
             domain=False
         )
         .configure_legend(
-            titleLimit=180,
-            labelLimit=180
+            titleLimit=190,
+            labelLimit=190
         )
     )
 
-    return grafico_agents
+    return grafico
 
-def criar_mapa_ia(df, geojson_paises, min_respondentes=30):
+
+# ============================================================
+# 5. MAPA DE USO DIÁRIO DE IA
+# ============================================================
+
+def criar_mapa_ia(
+    df,
+    geojson_paises,
+    min_respondentes=30
+):
 
     # Preparação dos dados
     df_geo = (
@@ -465,51 +788,27 @@ def criar_mapa_ia(df, geojson_paises, min_respondentes=30):
         .copy()
     )
 
-    # Verificação de dados disponíveis
     if df_geo.empty:
         return None
 
-    # Identificação dos respondentes que utilizam IA diariamente
+    # Identificação dos usuários diários
     df_geo['Uso_diario'] = (
-        df_geo['AISelect'] == 'Yes, I use AI tools daily'
+        df_geo['AISelect']
+        == 'Yes, I use AI tools daily'
     )
 
-    # Padronização dos países utilizando códigos ISO-3
-    aliases_paises = {
-        'United States of America': 'USA',
-        'United Kingdom of Great Britain and Northern Ireland': 'GBR',
-        'South Korea': 'KOR',
-        'North Korea': 'PRK',
-        'Taiwan': 'TWN',
-        'Hong Kong (S.A.R.)': 'HKG',
-        'Macao (S.A.R.)': 'MAC',
-        'Iran, Islamic Republic of...': 'IRN',
-        'Venezuela, Bolivarian Republic of...': 'VEN',
-        'Bolivia, Plurinational State of...': 'BOL',
-        'Congo, Republic of the...': 'COG',
-        'Democratic Republic of the Congo': 'COD',
-        'Kosovo': 'XKX'
-    }
-
-    def obter_iso3(pais):
-
-        if pais in aliases_paises:
-            return aliases_paises[pais]
-
-        try:
-            return pycountry.countries.lookup(pais).alpha_3
-
-        except LookupError:
-            return None
-
+    # Padronização dos países
     mapeamento_paises = {
         pais: obter_iso3(pais)
         for pais in df_geo['Country'].unique()
     }
 
-    df_geo['ISO3'] = df_geo['Country'].map(mapeamento_paises)
+    df_geo['ISO3'] = (
+        df_geo['Country']
+        .map(mapeamento_paises)
+    )
 
-    # Agregação dos dados por país
+    # Agregação dos dados
     df_geo_plot = (
         df_geo
         .dropna(subset=['ISO3'])
@@ -521,42 +820,44 @@ def criar_mapa_ia(df, geojson_paises, min_respondentes=30):
         )
     )
 
-    # Verificação de dados disponíveis após a padronização
     if df_geo_plot.empty:
         return None
 
     df_geo_plot['Percentual'] = (
-        df_geo_plot['Uso_diario'] /
-        df_geo_plot['Respondentes'] * 100
+        df_geo_plot['Uso_diario']
+        / df_geo_plot['Respondentes']
+        * 100
     )
 
     assert df_geo_plot['ISO3'].is_unique
 
     # Critério de amostra mínima
     df_geo_plot['Amostra_suficiente'] = (
-        df_geo_plot['Respondentes'] >= min_respondentes
+        df_geo_plot['Respondentes']
+        >= min_respondentes
     )
 
     # Cópia independente do GeoJSON
-    geojson_mapa = deepcopy(geojson_paises)
+    geojson_mapa = deepcopy(
+        geojson_paises
+    )
 
-    # Identificação dos países presentes no mapa
     codigos_mapa = {
         feature['id']
         for feature in geojson_mapa['features']
     }
 
-    # Dados utilizados na coloração
+    # Dados que receberão coloração
     df_geo_mapa = (
         df_geo_plot
         .loc[
-            df_geo_plot['Amostra_suficiente'] &
-            df_geo_plot['ISO3'].isin(codigos_mapa)
+            df_geo_plot['Amostra_suficiente']
+            & df_geo_plot['ISO3'].isin(codigos_mapa)
         ]
         .copy()
     )
 
-    # Informações exibidas no tooltip
+    # Informações dos tooltips
     dados_tooltip = (
         df_geo_plot
         .set_index('ISO3')
@@ -570,13 +871,18 @@ def criar_mapa_ia(df, geojson_paises, min_respondentes=30):
 
         if dados is None:
 
-            feature['properties']['Taxa'] = 'Sem dados'
+            feature['properties']['Taxa'] = (
+                'Sem dados'
+            )
+
             feature['properties']['Respondentes'] = '—'
             feature['properties']['Diarios'] = '—'
 
         elif dados['Respondentes'] < min_respondentes:
 
-            feature['properties']['Taxa'] = 'Amostra insuficiente'
+            feature['properties']['Taxa'] = (
+                'Amostra insuficiente'
+            )
 
             feature['properties']['Respondentes'] = str(
                 dados['Respondentes']
@@ -608,7 +914,7 @@ def criar_mapa_ia(df, geojson_paises, min_respondentes=30):
         tiles=None,
 
         width='100%',
-        height=620,
+        height=540,
 
         zoom_control=False,
         scroll_wheel_zoom=False,
@@ -621,32 +927,44 @@ def criar_mapa_ia(df, geojson_paises, min_respondentes=30):
         zoom_snap=0.1
     )
 
-    # Mapa coroplético
+    # Coroplético
     coropletico = folium.Choropleth(
         geo_data=geojson_mapa,
         data=df_geo_mapa,
 
-        columns=['ISO3', 'Percentual'],
+        columns=[
+            'ISO3',
+            'Percentual'
+        ],
+
         key_on='feature.id',
 
         fill_color='Blues',
-        fill_opacity=0.85,
+        fill_opacity=0.88,
 
         line_color='#FFFFFF',
         line_weight=0.6,
         line_opacity=0.8,
 
-        nan_fill_color='#E5E7EB',
-        nan_fill_opacity=0.85,
+        nan_fill_color='#D9DEE5',
+        nan_fill_opacity=0.90,
 
-        legend_name='Respondentes que utilizam IA diariamente (%)',
+        legend_name='Uso diário de IA (%)',
 
-        bins=[0, 20, 40, 60, 80, 100],
+        bins=[
+            0,
+            20,
+            40,
+            60,
+            80,
+            100
+        ],
 
         highlight=False
+
     ).add_to(mapa_ia)
 
-    # Tooltip interativo
+    # Tooltip
     folium.GeoJsonTooltip(
         fields=[
             'name',
@@ -672,9 +990,11 @@ def criar_mapa_ia(df, geojson_paises, min_respondentes=30):
             'padding: 10px;'
         )
 
-    ).add_to(coropletico.geojson)
+    ).add_to(
+        coropletico.geojson
+    )
 
-    # Enquadramento automático do mundo
+    # Enquadramento do mundo
     mapa_ia.fit_bounds(
         bounds=[
             [-60, -180],
