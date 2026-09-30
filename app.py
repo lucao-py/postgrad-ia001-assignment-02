@@ -35,29 +35,72 @@ st.markdown(
     """
     <style>
 
+    /* Página */
     .block-container {
         max-width: 1450px;
-        padding-top: 2rem;
-        padding-bottom: 3rem;
+        padding-top: 2.8rem;
+        padding-bottom: 4rem;
     }
 
+
+    /* Título principal */
+    h1 {
+        font-size: 2.75rem !important;
+        line-height: 1.20 !important;
+        letter-spacing: 0.01em;
+        margin-bottom: 0.8rem !important;
+    }
+
+
+    /* Títulos das abas */
+    h2 {
+        font-size: 1.75rem !important;
+        line-height: 1.30 !important;
+        margin-top: 1.8rem !important;
+        margin-bottom: 1.3rem !important;
+    }
+
+
+    /* Títulos dos gráficos */
+    h3 {
+        font-size: 1.45rem !important;
+        line-height: 1.35 !important;
+        margin-top: 2.2rem !important;
+        margin-bottom: 1.1rem !important;
+    }
+
+
+    /* Fonte secundária */
+    div[data-testid="stCaptionContainer"] {
+        line-height: 1.5;
+        margin-bottom: 0.6rem;
+    }
+
+
+    /* KPIs */
     div[data-testid="stMetric"] {
-        background: rgba(76, 120, 168, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
-        padding: 18px 20px;
+        padding: 20px 22px;
     }
 
     div[data-testid="stMetricLabel"] {
-        color: #A7AFBC;
+        margin-bottom: 0.35rem;
     }
 
     div[data-testid="stMetricValue"] {
-        font-size: 2rem;
+        line-height: 1.2;
     }
 
+
+    /* Mais espaço antes das abas */
     div[data-testid="stTabs"] {
-        margin-top: 1.4rem;
+        margin-top: 2.2rem;
+    }
+
+
+    /* Um pouco mais de respiro nos filtros */
+    div[data-testid="stSelectbox"],
+    div[data-testid="stMultiSelect"] {
+        margin-bottom: 1rem;
     }
 
     </style>
