@@ -6,11 +6,14 @@ import pandas as pd
 
 from src.data import (
     ADULT_AGE_GROUPS,
+    AGENT_RESPONSE_LEVELS,
     AGE_MAP,
     COMPLEXITY_MAP,
+    DataValidationError,
     FIELD_AVAILABILITY,
     ROLE_MAP,
     SURVEY_YEARS,
+    WORKFLOW_STATUSES,
     normalizar_pais,
     validar_ano,
 )
@@ -19,6 +22,30 @@ from src.data import (
 MIN_VALID_SAMPLE = 50
 EXPERIENCE_GROUPS = ("1-5", "6-10", "11-20", "21+")
 USAGE_FREQUENCIES = ("occasional", "weekly", "daily")
+FRUSTRATION_LABELS = {
+    "AI solutions that are almost right, but not quite": "Soluções quase corretas",
+    "Debugging AI-generated code is more time-consuming": "Depuração mais demorada",
+    "I’ve become less confident in my own problem-solving": "Menor confiança na própria resolução",
+    "It’s hard to understand how or why the code works": "Código difícil de compreender",
+}
+FRUSTRATION_OTHER = {
+    "Other (write in):", "I don’t use AI tools regularly",
+    "I haven’t encountered any problems",
+}
+WORKFLOW_TASKS = {
+    "Search for answers": "Buscar respostas",
+    "Writing code": "Escrever código",
+    "Learning new concepts or technologies": "Aprender conceitos",
+    "Debugging or fixing code": "Depurar código",
+    "Documenting code": "Documentar código",
+    "Testing code": "Testar código",
+    "Committing and reviewing code": "Revisar código",
+    "Project planning": "Planejar projetos",
+    "Deployment and monitoring": "Implantar e monitorar",
+}
+WORKFLOW_CATEGORIES = ("current", "plan", "no_plan")
+AGENT_PRODUCTIVITY_ITEM = "AI agents have increased my productivity."
+AGENT_ACCURACY_ITEM = "I am concerned about the accuracy of the information provided by AI agents."
 DEFAULT_FILTERS = {
     "population": "professional",
     "age_groups": ADULT_AGE_GROUPS,
@@ -69,7 +96,7 @@ def normalizar_filtros(filtros=None):
 def _filtrar(df, state):
     mask = pd.Series(True, index=df.index, dtype="boolean")
     if state["population"] != "all":
-        mask &= df["population_group"].eq(state["population"])
+        mask &= df["population_group"].eq(state["population"]).fillna(False)
     for field, column in (("age_groups", "age_group"), ("roles", "role"), ("countries", "country")):
         if state[field] is not None:
             mask &= df[column].isin(state[field])
@@ -257,4 +284,95 @@ def agregar_mudanca(df, ano=2025, filtros=None):
         df, "ai_work_change", ano, filtros,
         ("minimal_or_none", "somewhat", "great_extent", "non_ai_factors"),
         {"non_ai_somewhat": "non_ai_factors", "non_ai_significant": "non_ai_factors"},
+    )
+
+
+def _respostas_item(source, columns, item):
+    """Uma resposta por item; ausência fica sem categoria e duplicatas falham."""
+    selections = pd.DataFrame({
+        column: source[column].astype("string").str.split(";").map(
+            lambda values: item in values if isinstance(values, list) else False
+        )
+        for column in columns
+    }, index=source.index)
+    if selections.sum(axis=1).gt(1).any():
+        raise DataValidationError(f"Respostas conflitantes para {item!r}")
+    return selections
+
+
+def _fonte_evidencias(df, ano, filtros):
+    validar_ano(ano)
+    state = normalizar_filtros(filtros)
+    source = _filtrar(df.loc[df["survey_year"].eq(ano)], state)
+    return source.loc[source["ai_current_user"].eq(True).fillna(False)], state
+
+
+def agregar_frustracoes(df, ano=2025, filtros=None):
+    """Incidência de cada item entre usuários atuais com resposta à pergunta."""
+    source, state = _fonte_evidencias(df, ano, filtros)
+    universe = "current_ai_users_with_valid_frustration_response"
+    if ano != 2025:
+        return pd.DataFrame([_resultado("ai_frustration", ano, state, universe, "not_collected")])
+    values = source["AIFrustration"].dropna().astype("string").str.split(";")
+    observed = set(values.explode().dropna())
+    unknown = observed - set(FRUSTRATION_LABELS) - FRUSTRATION_OTHER
+    if unknown:
+        raise DataValidationError(f"2025 / AIFrustration: itens desconhecidos {sorted(unknown)}")
+    denominator = len(values)
+    status = _estado_amostra(len(source), denominator)
+    return pd.DataFrame([
+        _resultado(
+            "ai_frustration", ano, state, universe, status,
+            int(values.map(lambda items: item in items).sum()), denominator,
+            len(source), "frustration", item,
+        )
+        for item in FRUSTRATION_LABELS
+    ])
+
+
+def agregar_workflow(df, ano=2025, filtros=None):
+    """Uma alternativa válida por tarefa; intenção permanece distinta de uso atual."""
+    source, state = _fonte_evidencias(df, ano, filtros)
+    universe = "current_ai_users_with_valid_response_for_each_workflow_task"
+    if ano != 2025:
+        return pd.DataFrame([_resultado("ai_workflow", ano, state, universe, "not_collected")])
+    rows = []
+    for item in WORKFLOW_TASKS:
+        selections = _respostas_item(source, WORKFLOW_STATUSES, item)
+        denominator = int(selections.any(axis=1).sum())
+        status = _estado_amostra(len(source), denominator)
+        for category in WORKFLOW_CATEGORIES:
+            selected = selections.loc[:, [col for col, value in WORKFLOW_STATUSES.items() if value == category]]
+            rows.append(_resultado(
+                "ai_workflow", ano, state, universe, status,
+                int(selected.any(axis=1).sum()), denominator,
+                len(source), "workflow_task", item, category,
+            ))
+    return pd.DataFrame(rows)
+
+
+def calcular_insight_agentes(df, ano=2025, filtros=None):
+    """Produtividade percebida e preocupação com precisão no mesmo respondente."""
+    source, state = _fonte_evidencias(df, ano, filtros)
+    universe = "current_ai_agent_users_with_valid_productivity_and_accuracy_responses"
+    if ano != 2025:
+        return _resultado("ai_agent_productivity_accuracy_joint", ano, state, universe, "not_collected")
+    agents = source.loc[source["ai_agent_usage"].isin(USAGE_FREQUENCIES)]
+    productivity = _respostas_item(
+        agents, (f"AIAgentImpact{level}" for level in AGENT_RESPONSE_LEVELS),
+        AGENT_PRODUCTIVITY_ITEM,
+    )
+    accuracy = _respostas_item(
+        agents, (f"AIAgentChallenges{level}" for level in AGENT_RESPONSE_LEVELS),
+        AGENT_ACCURACY_ITEM,
+    )
+    valid = productivity.any(axis=1) & accuracy.any(axis=1)
+    positive_levels = ("Strongly agree", "Somewhat agree")
+    productivity_yes = productivity.loc[:, [f"AIAgentImpact{level}" for level in positive_levels]].any(axis=1)
+    accuracy_yes = accuracy.loc[:, [f"AIAgentChallenges{level}" for level in positive_levels]].any(axis=1)
+    denominator = int(valid.sum())
+    return _resultado(
+        "ai_agent_productivity_accuracy_joint", ano, state, universe,
+        _estado_amostra(len(agents), denominator),
+        int((valid & productivity_yes & accuracy_yes).sum()), denominator, len(agents),
     )

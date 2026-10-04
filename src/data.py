@@ -183,6 +183,25 @@ WORK_CHANGE_MAP = {
     "No, but my development work has significantly changed due to non-AI factors": "non_ai_significant",
 }
 
+# Perguntas de 2025 usadas apenas para contextualizar os indicadores históricos.
+# As matrizes exportam alternativas como colunas e tarefas como itens separados por ';'.
+WORKFLOW_STATUSES = {
+    "AIToolCurrently partially AI": "current",
+    "AIToolCurrently mostly AI": "current",
+    "AIToolPlan to partially use AI": "plan",
+    "AIToolPlan to mostly use AI": "plan",
+    "AIToolDon't plan to use AI for this task": "no_plan",
+}
+AGENT_RESPONSE_LEVELS = (
+    "Strongly agree", "Somewhat agree", "Neutral",
+    "Somewhat disagree", "Strongly disagree",
+)
+EVIDENCE_COLUMNS_2025 = (
+    "ResponseId", "AIFrustration", *WORKFLOW_STATUSES,
+    *(f"AIAgentImpact{level}" for level in AGENT_RESPONSE_LEVELS),
+    *(f"AIAgentChallenges{level}" for level in AGENT_RESPONSE_LEVELS),
+)
+
 CANONICAL_DTYPES = {
     "survey_year": "Int64", "respondent_id": "string",
     "population_group": "string", "age_group": "string",
@@ -391,6 +410,20 @@ def carregar_base_historica(anos=SURVEY_YEARS, cache_dir=None):
     if not result["respondent_id"].is_unique:
         raise DataValidationError("Chave canônica duplicada entre fontes")
     return result
+
+
+def carregar_evidencias_2025(cache_dir=None):
+    """Lê somente respostas suplementares de 2025, com chave canônica única."""
+    path = obter_arquivo_fonte(2025, "results.csv", cache_dir)
+    missing = set(EVIDENCE_COLUMNS_2025) - set(pd.read_csv(path, nrows=0).columns)
+    if missing:
+        raise DataValidationError(f"2025: colunas de evidência ausentes: {sorted(missing)}")
+    evidence = pd.read_csv(path, usecols=list(EVIDENCE_COLUMNS_2025), low_memory=False)
+    ids = pd.to_numeric(evidence["ResponseId"], errors="coerce")
+    if ids.isna().any() or ids.le(0).any() or ids.mod(1).ne(0).any() or ids.duplicated().any():
+        raise DataValidationError("2025: ResponseId inválido nas evidências")
+    evidence["respondent_id"] = "2025:" + ids.astype("Int64").astype("string")
+    return evidence.drop(columns="ResponseId")
 
 
 def relatorio_cobertura(df, anos=SURVEY_YEARS):

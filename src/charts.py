@@ -2,6 +2,7 @@ import altair as alt
 import numpy as np
 import folium
 import pycountry
+import pandas as pd
 
 from copy import deepcopy
 
@@ -1004,3 +1005,285 @@ def criar_mapa_ia(
     )
 
     return mapa_ia
+
+
+# Gráficos do dashboard histórico. Todos recebem somente agregações da análise.
+METRIC_LABELS = {
+    'ai_current_use': 'Uso atual de IA',
+    'ai_daily_use': 'Uso diário de IA',
+    'ai_trust_positive': 'Confiança positiva',
+}
+METRIC_COLORS = ['#4C78A8', '#8FB6D9', '#D4866B']
+PROFILE_LABELS = {
+    'academic_researcher': 'Pesquisa acadêmica',
+    'cloud_infrastructure': 'Infraestrutura em nuvem',
+    'data_business_analyst': 'Análise de dados/negócios',
+    'qa_test': 'QA e testes',
+    'back_end': 'Back-end',
+    'desktop_enterprise': 'Desktop/empresarial',
+    'embedded': 'Sistemas embarcados',
+    'front_end': 'Front-end',
+    'full_stack': 'Full-stack',
+    'game_graphics': 'Jogos/gráficos',
+    'mobile': 'Mobile',
+    'engineering_manager': 'Gestão de engenharia',
+    'product_manager': 'Gestão de produto',
+    'project_manager': 'Gestão de projetos',
+    'system_administrator': 'Administração de sistemas',
+}
+FREQUENCY_LABELS = {
+    'occasional': 'Uso ocasional',
+    'weekly': 'Uso semanal',
+    'daily': 'Uso diário',
+}
+COMPLEXITY_LABELS = {
+    'very_poor': 'Muito ruim',
+    'bad': 'Ruim',
+    'neutral': 'Neutra',
+    'good_with_limits': 'Boa, com limites',
+    'very_good': 'Muito boa',
+    'not_used_or_unknown': 'Não usa/não sabe',
+}
+CHANGE_LABELS = {
+    'minimal_or_none': 'Nenhuma ou mínima',
+    'somewhat': 'Moderada',
+    'great_extent': 'Grande',
+    'non_ai_factors': 'Fatores não IA',
+}
+
+
+def _valid_rows(results):
+    """Não transforma amostra insuficiente ou indisponibilidade em zero."""
+    return results.loc[results['availability_state'].eq('available')].copy()
+
+
+def criar_grafico_tendencias(adocao, confianca):
+    """Duas taxas de universos distintos, na mesma escala percentual."""
+    rows = _valid_rows(pd.concat([adocao, confianca], ignore_index=True))
+    if rows.empty:
+        return None
+    rows['indicador'] = rows['metric'].map({
+        'ai_current_use': 'Uso atual de IA',
+        'ai_trust_positive': 'Confiança positiva',
+    })
+    rows['base'] = rows['metric'].map({
+        'ai_current_use': 'Respostas válidas sobre uso de IA',
+        'ai_trust_positive': 'Usuários atuais com resposta válida de confiança',
+    })
+    domain = ['Uso atual de IA', 'Confiança positiva']
+    base = alt.Chart(rows).encode(
+        x=alt.X('year:O', title='Ano da pesquisa', sort=[2023, 2024, 2025],
+                axis=alt.Axis(labelAngle=0)),
+        y=alt.Y('percentage:Q', title='Taxa (%)',
+                scale=alt.Scale(domain=[0, 100]),
+                axis=alt.Axis(format='.0f', titlePadding=12)),
+        color=alt.Color('indicador:N', title=None, scale=alt.Scale(
+            domain=domain, range=['#4C78A8', '#D4866B']),
+            legend=alt.Legend(orient='bottom')),
+        tooltip=[
+            alt.Tooltip('year:O', title='Ano'),
+            alt.Tooltip('indicador:N', title='Indicador'),
+            alt.Tooltip('numerator:Q', title='Numerador', format=',d'),
+            alt.Tooltip('valid_denominator:Q', title='Base válida', format=',d'),
+            alt.Tooltip('base:N', title='Universo'),
+            alt.Tooltip('percentage:Q', title='Taxa (%)', format='.1f'),
+        ],
+    )
+    hover = alt.selection_point(
+        fields=['metric', 'year'], on='pointerover', nearest=True,
+        clear='pointerout', empty=False,
+    )
+    line = base.mark_line(strokeWidth=3)
+    points = base.mark_circle().add_params(hover).encode(
+        size=alt.condition(hover, alt.value(210), alt.value(90))
+    )
+    adoption_labels = base.transform_filter(
+        alt.datum.metric == 'ai_current_use'
+    ).mark_text(align='left', baseline='middle', dx=9, dy=-15,
+                fontWeight='bold', fontSize=12).encode(
+        text=alt.Text('percentage:Q', format='.1f')
+    )
+    trust_labels = base.transform_filter(
+        alt.datum.metric == 'ai_trust_positive'
+    ).mark_text(align='left', baseline='middle', dx=9, dy=17,
+                fontWeight='bold', fontSize=12).encode(
+        text=alt.Text('percentage:Q', format='.1f')
+    )
+    return (line + points + adoption_labels + trust_labels).properties(
+        width='container', height=300,
+        padding={'left': 28, 'right': 36, 'top': 22, 'bottom': 8},
+    ).configure_view(stroke=None)
+
+
+def criar_grafico_perfis(results, dimension):
+    """Taxas dentro de cada grupo, com a base válida em cada tooltip."""
+    rows = _valid_rows(results)
+    if rows.empty:
+        return None
+    labels = list(dict.fromkeys(results['group'].dropna()))
+    if dimension == 'role':
+        label_map = PROFILE_LABELS
+        height = max(280, 54 * len(labels))
+    elif dimension == 'work_experience':
+        label_map = {group: group + ' anos' for group in labels}
+        height = 250
+    else:
+        raise ValueError('Dimensão de perfil não suportada')
+    rows['grupo'] = rows['group'].map(label_map)
+    rows['indicador'] = rows['metric'].map(METRIC_LABELS)
+    rows['base'] = rows['metric'].map({
+        'ai_current_use': 'Respostas válidas sobre uso',
+        'ai_daily_use': 'Respostas válidas sobre uso',
+        'ai_trust_positive': 'Usuários atuais com confiança válida',
+    })
+    group_order = [label_map[group] for group in labels]
+    metric_order = list(METRIC_LABELS.values())
+    return alt.Chart(rows).mark_bar(size=10).encode(
+        x=alt.X('percentage:Q', title='Taxa dentro do grupo (%)',
+                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f')),
+        y=alt.Y('grupo:N', title=None, sort=group_order,
+                axis=alt.Axis(labelLimit=200)),
+        yOffset=alt.YOffset('indicador:N', sort=metric_order),
+        color=alt.Color('indicador:N', title=None, scale=alt.Scale(
+            domain=metric_order, range=METRIC_COLORS),
+            legend=alt.Legend(orient='bottom')),
+        tooltip=[
+            alt.Tooltip('grupo:N', title='Grupo'),
+            alt.Tooltip('indicador:N', title='Indicador'),
+            alt.Tooltip('numerator:Q', title='Numerador', format=',d'),
+            alt.Tooltip('valid_denominator:Q', title='Base válida', format=',d'),
+            alt.Tooltip('base:N', title='Universo'),
+            alt.Tooltip('percentage:Q', title='Taxa (%)', format='.1f'),
+        ],
+    ).properties(width='container', height=height).configure_view(stroke=None)
+
+
+def criar_grafico_capacidade(results):
+    """Mapa de calor da capacidade percebida, com usuários atuais por frequência."""
+    rows = _valid_rows(results)
+    if rows.empty:
+        return None
+    rows['frequencia'] = rows['group'].map(FREQUENCY_LABELS)
+    rows['percepcao'] = rows['category'].map(COMPLEXITY_LABELS)
+    rows['rotulo'] = rows['percentage'].map(lambda value: f'{value:.0f}%' if value >= 1 else '')
+    base = alt.Chart(rows).encode(
+        x=alt.X('percepcao:N', title='Capacidade em tarefas complexas',
+                sort=list(COMPLEXITY_LABELS.values()),
+                axis=alt.Axis(labelAngle=-25, labelLimit=150, labelOverlap=False)),
+        y=alt.Y('frequencia:N', title=None, sort=list(FREQUENCY_LABELS.values())),
+        tooltip=[
+            alt.Tooltip('frequencia:N', title='Frequência'),
+            alt.Tooltip('percepcao:N', title='Percepção'),
+            alt.Tooltip('numerator:Q', title='Respostas', format=',d'),
+            alt.Tooltip('valid_denominator:Q', title='Base válida', format=',d'),
+            alt.Tooltip('percentage:Q', title='Dentro da frequência (%)', format='.1f'),
+        ],
+    )
+    cells = base.mark_rect(stroke='#0E1117', strokeWidth=2).encode(
+        color=alt.Color('percentage:Q', title='Dentro do grupo (%)',
+                        scale=alt.Scale(domain=[0, 100], scheme='blues'))
+    )
+    labels = base.mark_text(fontSize=11, fontWeight='bold').encode(
+        text='rotulo:N',
+        color=alt.condition(alt.datum.percentage >= 30, alt.value('white'), alt.value(TEXTO_ESCURO)),
+    )
+    return (cells + labels).properties(width='container', height=240).configure_view(stroke=None)
+
+
+def criar_grafico_mudanca(results):
+    """Distribuição da mudança percebida por intensidade de uso de IA."""
+    rows = _valid_rows(results)
+    if rows.empty:
+        return None
+    rows['frequencia'] = rows['group'].map(FREQUENCY_LABELS)
+    rows['mudanca'] = rows['category'].map(CHANGE_LABELS)
+    rows['ordem'] = rows['category'].map({key: index for index, key in enumerate(CHANGE_LABELS)})
+    return alt.Chart(rows).mark_bar(size=32).encode(
+        x=alt.X('percentage:Q', stack='zero', title='Respostas dentro de cada frequência (%)',
+                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f')),
+        y=alt.Y('frequencia:N', title=None, sort=list(FREQUENCY_LABELS.values())),
+        color=alt.Color('mudanca:N', title='Mudança percebida', scale=alt.Scale(
+            domain=list(CHANGE_LABELS.values()), range=CORES_MUDANCA),
+            legend=alt.Legend(orient='bottom')),
+        order=alt.Order('ordem:Q'),
+        tooltip=[
+            alt.Tooltip('frequencia:N', title='Frequência'),
+            alt.Tooltip('mudanca:N', title='Mudança'),
+            alt.Tooltip('numerator:Q', title='Respostas', format=',d'),
+            alt.Tooltip('valid_denominator:Q', title='Base válida', format=',d'),
+            alt.Tooltip('percentage:Q', title='Dentro da frequência (%)', format='.1f'),
+        ],
+    ).properties(width='container', height=245).configure_view(stroke=None)
+
+
+def criar_grafico_frustracoes(results):
+    """Frustrações relatadas por usuários atuais; respostas múltiplas."""
+    from src.analysis import FRUSTRATION_LABELS
+
+    rows = _valid_rows(results)
+    if rows.empty:
+        return None
+    rows['frustracao'] = rows['group'].map(FRUSTRATION_LABELS)
+    rows['destaque'] = rows['group'].isin(list(FRUSTRATION_LABELS)[:2])
+    rows['tipo'] = 'Múltipla escolha; percentuais não somam 100%'
+    order = list(FRUSTRATION_LABELS.values())
+    base = alt.Chart(rows).encode(
+        x=alt.X('percentage:Q', title='Usuários com resposta válida (%)',
+                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f')),
+        y=alt.Y('frustracao:N', title=None, sort=order,
+                axis=alt.Axis(labelLimit=260)),
+        tooltip=[
+            alt.Tooltip('frustracao:N', title='Frustração'),
+            alt.Tooltip('numerator:Q', title='Respondentes', format=',d'),
+            alt.Tooltip('valid_denominator:Q', title='Base válida', format=',d'),
+            alt.Tooltip('percentage:Q', title='Relataram (%)', format='.1f'),
+            alt.Tooltip('tipo:N', title='Pergunta'),
+        ],
+    )
+    bars = base.mark_bar(size=24).encode(
+        color=alt.condition('datum.destaque', alt.value('#D4866B'), alt.value(AZUL_PRINCIPAL))
+    )
+    labels = base.mark_text(align='left', baseline='middle', dx=7,
+                            fontSize=12, color='#E5E7EB').encode(
+        text=alt.Text('percentage:Q', format='.1f')
+    )
+    return (bars + labels).properties(
+        width='container', height=245,
+        padding={'left': 8, 'right': 38, 'top': 8, 'bottom': 8},
+    ).configure_view(stroke=None)
+
+
+def criar_grafico_workflow(results):
+    """Uma categoria por tarefa, com denominador válido específico."""
+    from src.analysis import WORKFLOW_TASKS
+
+    rows = _valid_rows(results)
+    if rows.empty:
+        return None
+    labels = {'current': 'Já usa', 'plan': 'Pretende usar', 'no_plan': 'Não pretende'}
+    colors = [AZUL_PRINCIPAL, AZUL_MEDIO, CINZA]
+    rows['tarefa'] = rows['group'].map(WORKFLOW_TASKS)
+    rows['situacao'] = rows['category'].map(labels)
+    rows['situacao_tooltip'] = rows['category'].map({
+        'current': 'Já usa (parcial ou majoritariamente)',
+        'plan': 'Pretende usar nos próximos 3–5 anos',
+        'no_plan': 'Não pretende usar nesta tarefa',
+    })
+    rows['ordem'] = rows['category'].map({key: index for index, key in enumerate(labels)})
+    return alt.Chart(rows).mark_bar(size=26).encode(
+        x=alt.X('percentage:Q', stack='zero', title='Respostas dentro de cada tarefa (%)',
+                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f')),
+        y=alt.Y('tarefa:N', title=None, sort=list(WORKFLOW_TASKS.values()),
+                axis=alt.Axis(labelLimit=190)),
+        color=alt.Color('situacao:N', title=None, scale=alt.Scale(
+            domain=list(labels.values()), range=colors),
+            legend=alt.Legend(orient='bottom')),
+        order=alt.Order('ordem:Q'),
+        tooltip=[
+            alt.Tooltip('tarefa:N', title='Tarefa'),
+            alt.Tooltip('situacao_tooltip:N', title='Situação'),
+            alt.Tooltip('numerator:Q', title='Respondentes', format=',d'),
+            alt.Tooltip('valid_denominator:Q', title='Base válida', format=',d'),
+            alt.Tooltip('percentage:Q', title='Dentro da tarefa (%)', format='.1f'),
+        ],
+    ).properties(width='container', height=390).configure_view(stroke=None)

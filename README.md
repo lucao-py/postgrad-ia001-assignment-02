@@ -1,55 +1,25 @@
-# Stack Overflow Developer Survey 2025 | AI Analytics Dashboard
+# IA no Desenvolvimento de Software
 
-An interactive dashboard developed for the **Data Analysis and Visualization** course of the Advanced Artificial Intelligence postgraduate program at UFRGS.
+Dashboard da disciplina IA001 (UFRGS) com as pesquisas oficiais do Stack Overflow Developer Survey de 2023, 2024 e 2025. A análise acompanha a expansão do uso atual de IA e da confiança entre usuários atuais, compara perfis profissionais de 2025 e examina capacidade percebida, frustrações, adoção por tarefa e mudanças no trabalho.
 
-The project explores how developers use AI tools, their perceptions of AI capabilities, and how these technologies influence their professional activities.
+A visualização histórica usa a mesma escala de 0–100% para duas taxas com **bases distintas**. O uso atual considera respostas válidas sobre uso de IA; a confiança considera somente usuários atuais com resposta válida de confiança. O recorte padrão inclui profissionais de 18 anos ou mais. As abas apresentam perfis e, em sequência, capacidade, frustrações, uso por tarefa e mudança percebida. O fechamento sobre agentes usa respostas válidas de produtividade percebida e preocupação com precisão dos mesmos usuários.
 
-## Analyses
-
-Using data from the **Stack Overflow Developer Survey 2025**, the dashboard investigates five questions:
-
-1. Trust in AI accuracy across different usage frequencies.
-2. Perceived AI performance on complex tasks.
-3. Professional experience and AI adoption.
-4. Perceived changes in work practices among AI agent users.
-5. Geographic distribution of daily AI usage.
-
-The application features interactive filters, Altair visualizations, and a Folium choropleth map.
-
-## Getting Started
-
-Clone the repository:
-
-```bash
-git clone https://github.com/lucao-py/postgrad-ia001-assignment-02.git
-cd postgrad-ia001-assignment-02
-```
-
-Create and activate a virtual environment:
+## Executar
 
 ```bash
 python -m venv venv
 source venv/bin/activate
-```
-
-Install the dependencies:
-
-```bash
 python -m pip install -r requirements.txt
-```
-
-Run the application:
-
-```bash
 python -m streamlit run app.py
 ```
 
-Open the local URL displayed in your terminal, usually `http://localhost:8501`.
+Na primeira execução, os arquivos anuais são baixados para `~/.cache/ufrgs-ai-survey/` e verificados por tamanho e SHA-256 antes da análise. As versões, o schema, a cobertura, as bases dos indicadores, os resultados de referência e os limites estão em [Fundação analítica](docs/analytical-foundation.md).
 
-## Data Source
+## Verificar
 
-[Stack Overflow Developer Survey 2025](https://survey.stackoverflow.co/2025/)
+```bash
+PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s tests -v
+PYTHONDONTWRITEBYTECODE=1 python -m scripts.validate_foundation --output docs/foundation-validation.json
+```
 
-## Academic Context
-
-Developed as Assignment 02 for **IA001 – Data Analysis and Visualization with Python and AI-Assisted Tools**, UFRGS.
+Os testes usam a biblioteca padrão `unittest` e o teste de interface do Streamlit. A validação integral lê novamente as fontes oficiais verificadas e confere contagens, denominadores, percentuais, perfis e cobertura. Ela falha diante de qualquer divergência.

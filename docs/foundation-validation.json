@@ -1,0 +1,1517 @@
+{
+  "source_revision": "32a114542da67e3759479637343718502742adfd",
+  "source_manifest": {
+    "2023": {
+      "results.csv": {
+        "sha256": "828874a3cf0fa1bbb4c3da6a87e5822b8563bbc04b21f9869479480dbcff410c",
+        "size": 158626799,
+        "url": "https://media.githubusercontent.com/media/StackExchange/Survey/32a114542da67e3759479637343718502742adfd/packages/archive/2023/results.csv"
+      },
+      "schema.csv": {
+        "sha256": "43ceb5126b9622bd863b366093c5373c1c0a0e65a3b8f640947b70524c94c1ec",
+        "size": 16442,
+        "url": "https://media.githubusercontent.com/media/StackExchange/Survey/32a114542da67e3759479637343718502742adfd/packages/archive/2023/schema.csv"
+      }
+    },
+    "2024": {
+      "results.csv": {
+        "sha256": "7f2c2dbf6989d00b80a7351de4bb3af4b52b21cc52d5c947891bbc4f4e5cbe49",
+        "size": 159525875,
+        "url": "https://media.githubusercontent.com/media/StackExchange/Survey/32a114542da67e3759479637343718502742adfd/packages/archive/2024/results.csv"
+      },
+      "schema.csv": {
+        "sha256": "d9c03fd43949dd9b0fea4847894c4011a6fe3c4390d5d8c48e078a8bfe623833",
+        "size": 12503,
+        "url": "https://media.githubusercontent.com/media/StackExchange/Survey/32a114542da67e3759479637343718502742adfd/packages/archive/2024/schema.csv"
+      }
+    },
+    "2025": {
+      "results.csv": {
+        "sha256": "2d1f65308877282edfb4470520eabbc08cb499118432a3dcec6a66c086aa2baa",
+        "size": 140893245,
+        "url": "https://media.githubusercontent.com/media/StackExchange/Survey/32a114542da67e3759479637343718502742adfd/packages/archive/2025/results.csv"
+      },
+      "schema.csv": {
+        "sha256": "1d24951e04eab46c6f9fecef6ce8e6b32a0a14a3f0eecdcf62f70833a74b3ff8",
+        "size": 30403,
+        "url": "https://media.githubusercontent.com/media/StackExchange/Survey/32a114542da67e3759479637343718502742adfd/packages/archive/2025/schema.csv"
+      }
+    }
+  },
+  "total_respondents": 203812,
+  "year_counts": {
+    "2023": 89184,
+    "2024": 65437,
+    "2025": 49191
+  },
+  "schema": {
+    "survey_year": "Int64",
+    "respondent_id": "string",
+    "population_group": "string",
+    "age_group": "string",
+    "role": "string",
+    "role_raw": "string",
+    "role_status": "string",
+    "country": "string",
+    "country_raw": "string",
+    "ai_current_user": "boolean",
+    "ai_daily_user": "boolean",
+    "ai_usage_frequency": "string",
+    "ai_plan_to_use": "boolean",
+    "ai_no_plan": "boolean",
+    "ai_trust": "string",
+    "ai_trust_positive": "boolean",
+    "ai_complexity": "string",
+    "work_experience": "Int64",
+    "ai_agent_usage": "string",
+    "ai_work_change": "string"
+  },
+  "coverage": [
+    {
+      "year": 2023,
+      "field": "survey_year",
+      "dtype": "Int64",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 89184,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "respondent_id",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 89184,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "population_group",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 89184,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "age_group",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 89184,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "role",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 61387,
+      "missing_response_count": 12312,
+      "not_comparable_count": 15485,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "role_raw",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 76872,
+      "missing_response_count": 12312,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "role_status",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 89184,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "country",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 87973,
+      "missing_response_count": 1211,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "country_raw",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 87973,
+      "missing_response_count": 1211,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "ai_current_user",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 87973,
+      "missing_response_count": 1211,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "ai_daily_user",
+      "dtype": "boolean",
+      "availability_state": "not_collected",
+      "total_respondents": 89184,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 89184
+    },
+    {
+      "year": 2023,
+      "field": "ai_usage_frequency",
+      "dtype": "string",
+      "availability_state": "not_collected",
+      "total_respondents": 89184,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 89184
+    },
+    {
+      "year": 2023,
+      "field": "ai_plan_to_use",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 87973,
+      "missing_response_count": 1211,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "ai_no_plan",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 87973,
+      "missing_response_count": 1211,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "ai_trust",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 61396,
+      "missing_response_count": 27788,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "ai_trust_positive",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 89184,
+      "observed_count": 61396,
+      "missing_response_count": 27788,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "ai_complexity",
+      "dtype": "string",
+      "availability_state": "not_collected",
+      "total_respondents": 89184,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 89184
+    },
+    {
+      "year": 2023,
+      "field": "work_experience",
+      "dtype": "Int64",
+      "availability_state": "not_comparable",
+      "total_respondents": 89184,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 89184,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2023,
+      "field": "ai_agent_usage",
+      "dtype": "string",
+      "availability_state": "not_collected",
+      "total_respondents": 89184,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 89184
+    },
+    {
+      "year": 2023,
+      "field": "ai_work_change",
+      "dtype": "string",
+      "availability_state": "not_collected",
+      "total_respondents": 89184,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 89184
+    },
+    {
+      "year": 2024,
+      "field": "survey_year",
+      "dtype": "Int64",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 65437,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "respondent_id",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 65437,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "population_group",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 65437,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "age_group",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 65437,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "role",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 43835,
+      "missing_response_count": 5992,
+      "not_comparable_count": 15610,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "role_raw",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 59445,
+      "missing_response_count": 5992,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "role_status",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 65437,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "country",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 58930,
+      "missing_response_count": 6507,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "country_raw",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 58930,
+      "missing_response_count": 6507,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "ai_current_user",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 60907,
+      "missing_response_count": 4530,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "ai_daily_user",
+      "dtype": "boolean",
+      "availability_state": "not_collected",
+      "total_respondents": 65437,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 65437
+    },
+    {
+      "year": 2024,
+      "field": "ai_usage_frequency",
+      "dtype": "string",
+      "availability_state": "not_collected",
+      "total_respondents": 65437,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 65437
+    },
+    {
+      "year": 2024,
+      "field": "ai_plan_to_use",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 60907,
+      "missing_response_count": 4530,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "ai_no_plan",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 60907,
+      "missing_response_count": 4530,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "ai_trust",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 37302,
+      "missing_response_count": 28135,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "ai_trust_positive",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 65437,
+      "observed_count": 37302,
+      "missing_response_count": 28135,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "ai_complexity",
+      "dtype": "string",
+      "availability_state": "not_comparable",
+      "total_respondents": 65437,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 65437,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "work_experience",
+      "dtype": "Int64",
+      "availability_state": "not_comparable",
+      "total_respondents": 65437,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 65437,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2024,
+      "field": "ai_agent_usage",
+      "dtype": "string",
+      "availability_state": "not_collected",
+      "total_respondents": 65437,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 65437
+    },
+    {
+      "year": 2024,
+      "field": "ai_work_change",
+      "dtype": "string",
+      "availability_state": "not_collected",
+      "total_respondents": 65437,
+      "observed_count": 0,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 65437
+    },
+    {
+      "year": 2025,
+      "field": "survey_year",
+      "dtype": "Int64",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 49191,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "respondent_id",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 49191,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "population_group",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 49191,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "age_group",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 49191,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "role",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 30134,
+      "missing_response_count": 5511,
+      "not_comparable_count": 13546,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "role_raw",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 43680,
+      "missing_response_count": 5511,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "role_status",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 49191,
+      "missing_response_count": 0,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "country",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 35437,
+      "missing_response_count": 13754,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "country_raw",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 35437,
+      "missing_response_count": 13754,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_current_user",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 33720,
+      "missing_response_count": 15471,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_daily_user",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 33720,
+      "missing_response_count": 15471,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_usage_frequency",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 33720,
+      "missing_response_count": 15471,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_plan_to_use",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 33720,
+      "missing_response_count": 15471,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_no_plan",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 33720,
+      "missing_response_count": 15471,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_trust",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 33297,
+      "missing_response_count": 15894,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_trust_positive",
+      "dtype": "boolean",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 33297,
+      "missing_response_count": 15894,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_complexity",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 33283,
+      "missing_response_count": 15908,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "work_experience",
+      "dtype": "Int64",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 42893,
+      "missing_response_count": 6298,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_agent_usage",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 31919,
+      "missing_response_count": 17272,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    },
+    {
+      "year": 2025,
+      "field": "ai_work_change",
+      "dtype": "string",
+      "availability_state": "available",
+      "total_respondents": 49191,
+      "observed_count": 31678,
+      "missing_response_count": 17513,
+      "not_comparable_count": 0,
+      "not_collected_count": 0
+    }
+  ],
+  "historical_metrics": [
+    {
+      "metric": "ai_current_use",
+      "year": 2023,
+      "numerator": 29381,
+      "valid_denominator": 66684,
+      "percentage": 44.060044388459,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 66684,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": null,
+      "group": null,
+      "category": null
+    },
+    {
+      "metric": "ai_trust_positive",
+      "year": 2023,
+      "numerator": 13533,
+      "valid_denominator": 29283,
+      "percentage": 46.21452720008196,
+      "metric_universe": "current_ai_users_with_valid_trust",
+      "universe_n": 29381,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": null,
+      "group": null,
+      "category": null
+    },
+    {
+      "metric": "ai_current_use",
+      "year": 2024,
+      "numerator": 29393,
+      "valid_denominator": 46463,
+      "percentage": 63.26108946903988,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 49764,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": null,
+      "group": null,
+      "category": null
+    },
+    {
+      "metric": "ai_trust_positive",
+      "year": 2024,
+      "numerator": 12073,
+      "valid_denominator": 29142,
+      "percentage": 41.42817926017432,
+      "metric_universe": "current_ai_users_with_valid_trust",
+      "universe_n": 29393,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": null,
+      "group": null,
+      "category": null
+    },
+    {
+      "metric": "ai_current_use",
+      "year": 2025,
+      "numerator": 20991,
+      "valid_denominator": 25975,
+      "percentage": 80.81231953801732,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 37327,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": null,
+      "group": null,
+      "category": null
+    },
+    {
+      "metric": "ai_trust_positive",
+      "year": 2025,
+      "numerator": 7962,
+      "valid_denominator": 20732,
+      "percentage": 38.40439899672005,
+      "metric_universe": "current_ai_users_with_valid_trust",
+      "universe_n": 20991,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": null,
+      "group": null,
+      "category": null
+    }
+  ],
+  "profile_metrics": [
+    {
+      "metric": "ai_current_use",
+      "year": 2025,
+      "numerator": 5423,
+      "valid_denominator": 6363,
+      "percentage": 85.22709413798523,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 9625,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "1-5",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_daily_use",
+      "year": 2025,
+      "numerator": 3540,
+      "valid_denominator": 6363,
+      "percentage": 55.63413484205564,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 9625,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "not_applicable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "1-5",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_trust_positive",
+      "year": 2025,
+      "numerator": 2076,
+      "valid_denominator": 5324,
+      "percentage": 38.99323816679188,
+      "metric_universe": "current_ai_users_with_valid_trust",
+      "universe_n": 5423,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "1-5",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_current_use",
+      "year": 2025,
+      "numerator": 4992,
+      "valid_denominator": 6002,
+      "percentage": 83.17227590803066,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 8387,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "6-10",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_daily_use",
+      "year": 2025,
+      "numerator": 3175,
+      "valid_denominator": 6002,
+      "percentage": 52.899033655448186,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 8387,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "not_applicable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "6-10",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_trust_positive",
+      "year": 2025,
+      "numerator": 1890,
+      "valid_denominator": 4932,
+      "percentage": 38.32116788321168,
+      "metric_universe": "current_ai_users_with_valid_trust",
+      "universe_n": 4992,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "6-10",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_current_use",
+      "year": 2025,
+      "numerator": 6109,
+      "valid_denominator": 7614,
+      "percentage": 80.23377987916994,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 10149,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "11-20",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_daily_use",
+      "year": 2025,
+      "numerator": 3826,
+      "valid_denominator": 7614,
+      "percentage": 50.24954032046231,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 10149,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "not_applicable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "11-20",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_trust_positive",
+      "year": 2025,
+      "numerator": 2326,
+      "valid_denominator": 6063,
+      "percentage": 38.363846280719116,
+      "metric_universe": "current_ai_users_with_valid_trust",
+      "universe_n": 6109,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "11-20",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_current_use",
+      "year": 2025,
+      "numerator": 3950,
+      "valid_denominator": 5356,
+      "percentage": 73.74906646751307,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 6691,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "21+",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_daily_use",
+      "year": 2025,
+      "numerator": 2315,
+      "valid_denominator": 5356,
+      "percentage": 43.22255414488424,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 6691,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "not_applicable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "21+",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_trust_positive",
+      "year": 2025,
+      "numerator": 1467,
+      "valid_denominator": 3928,
+      "percentage": 37.34725050916497,
+      "metric_universe": "current_ai_users_with_valid_trust",
+      "universe_n": 3950,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "comparable",
+      "comparability_notes": [],
+      "group_by": "work_experience",
+      "group": "21+",
+      "category": null,
+      "profile_missing_dimension_n": 2475,
+      "profile_not_comparable_n": 0,
+      "profile_not_displayed_n": 0
+    },
+    {
+      "metric": "ai_current_use",
+      "year": 2025,
+      "numerator": 1187,
+      "valid_denominator": 1361,
+      "percentage": 87.21528288023512,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 1790,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "partial",
+      "comparability_notes": [
+        "Em 2025, função inclui a predominante no último ano, além da função atual."
+      ],
+      "group_by": "role",
+      "group": "front_end",
+      "category": null,
+      "profile_missing_dimension_n": 3749,
+      "profile_not_comparable_n": 7180,
+      "profile_not_displayed_n": 2357
+    },
+    {
+      "metric": "ai_daily_use",
+      "year": 2025,
+      "numerator": 817,
+      "valid_denominator": 1361,
+      "percentage": 60.02939015429831,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 1790,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "not_applicable",
+      "comparability_notes": [],
+      "group_by": "role",
+      "group": "front_end",
+      "category": null,
+      "profile_missing_dimension_n": 3749,
+      "profile_not_comparable_n": 7180,
+      "profile_not_displayed_n": 2357
+    },
+    {
+      "metric": "ai_trust_positive",
+      "year": 2025,
+      "numerator": 507,
+      "valid_denominator": 1170,
+      "percentage": 43.333333333333336,
+      "metric_universe": "current_ai_users_with_valid_trust",
+      "universe_n": 1187,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "partial",
+      "comparability_notes": [
+        "Em 2025, função inclui a predominante no último ano, além da função atual."
+      ],
+      "group_by": "role",
+      "group": "front_end",
+      "category": null,
+      "profile_missing_dimension_n": 3749,
+      "profile_not_comparable_n": 7180,
+      "profile_not_displayed_n": 2357
+    },
+    {
+      "metric": "ai_current_use",
+      "year": 2025,
+      "numerator": 615,
+      "valid_denominator": 943,
+      "percentage": 65.21739130434783,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 1178,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "partial",
+      "comparability_notes": [
+        "Em 2025, função inclui a predominante no último ano, além da função atual."
+      ],
+      "group_by": "role",
+      "group": "embedded",
+      "category": null,
+      "profile_missing_dimension_n": 3749,
+      "profile_not_comparable_n": 7180,
+      "profile_not_displayed_n": 2357
+    },
+    {
+      "metric": "ai_daily_use",
+      "year": 2025,
+      "numerator": 279,
+      "valid_denominator": 943,
+      "percentage": 29.5864262990456,
+      "metric_universe": "valid_ai_usage_in_filtered_population",
+      "universe_n": 1178,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "not_applicable",
+      "comparability_notes": [],
+      "group_by": "role",
+      "group": "embedded",
+      "category": null,
+      "profile_missing_dimension_n": 3749,
+      "profile_not_comparable_n": 7180,
+      "profile_not_displayed_n": 2357
+    },
+    {
+      "metric": "ai_trust_positive",
+      "year": 2025,
+      "numerator": 175,
+      "valid_denominator": 612,
+      "percentage": 28.594771241830067,
+      "metric_universe": "current_ai_users_with_valid_trust",
+      "universe_n": 615,
+      "filter_state": {
+        "population": "professional",
+        "age_groups": [
+          "18_24",
+          "25_34",
+          "35_44",
+          "45_54",
+          "55_64",
+          "65_plus"
+        ],
+        "roles": null,
+        "countries": null
+      },
+      "availability_state": "available",
+      "historical_comparability": "partial",
+      "comparability_notes": [
+        "Em 2025, função inclui a predominante no último ano, além da função atual."
+      ],
+      "group_by": "role",
+      "group": "embedded",
+      "category": null,
+      "profile_missing_dimension_n": 3749,
+      "profile_not_comparable_n": 7180,
+      "profile_not_displayed_n": 2357
+    }
+  ],
+  "selected_roles": [
+    "full_stack",
+    "back_end",
+    "desktop_enterprise",
+    "front_end",
+    "mobile",
+    "embedded"
+  ],
+  "agent_metric": {
+    "metric": "ai_agent_use",
+    "year": 2025,
+    "numerator": 7686,
+    "valid_denominator": 19915,
+    "percentage": 38.59402460456942,
+    "metric_universe": "current_ai_users_with_valid_agent_usage",
+    "universe_n": 20991,
+    "filter_state": {
+      "population": "professional",
+      "age_groups": [
+        "18_24",
+        "25_34",
+        "35_44",
+        "45_54",
+        "55_64",
+        "65_plus"
+      ],
+      "roles": null,
+      "countries": null
+    },
+    "availability_state": "available",
+    "historical_comparability": "not_applicable",
+    "comparability_notes": [],
+    "group_by": null,
+    "group": null,
+    "category": null
+  },
+  "distribution_denominators": {
+    "complexity": {
+      "occasional": 3258,
+      "weekly": 4475,
+      "daily": 13001
+    },
+    "work_change": {
+      "occasional": 3134,
+      "weekly": 4294,
+      "daily": 12399
+    }
+  }
+}
