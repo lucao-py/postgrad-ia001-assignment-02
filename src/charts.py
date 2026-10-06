@@ -1123,10 +1123,10 @@ def criar_grafico_perfis(results, dimension):
     labels = list(dict.fromkeys(results['group'].dropna()))
     if dimension == 'role':
         label_map = PROFILE_LABELS
-        height = max(280, 54 * len(labels))
+        height = max(350, 72 * len(labels))
     elif dimension == 'work_experience':
         label_map = {group: group + ' anos' for group in labels}
-        height = 250
+        height = 310
     else:
         raise ValueError('Dimensão de perfil não suportada')
     rows['grupo'] = rows['group'].map(label_map)
@@ -1136,17 +1136,27 @@ def criar_grafico_perfis(results, dimension):
         'ai_daily_use': 'Respostas válidas sobre uso',
         'ai_trust_positive': 'Usuários atuais com confiança válida',
     })
+    if dimension == 'role':
+        # A seleção continua sendo pela base válida. A ordenação só melhora a
+        # leitura visual, deixando a taxa de adoção mais alta no topo.
+        adoption = rows.loc[rows['metric'].eq('ai_current_use')].set_index('group')['percentage']
+        labels = sorted(labels, key=lambda group: (-adoption.get(group, float('-inf')), label_map[group]))
     group_order = [label_map[group] for group in labels]
     metric_order = list(METRIC_LABELS.values())
-    return alt.Chart(rows).mark_bar(size=10).encode(
+    rows['rotulo'] = rows['percentage'].map(lambda value: f'{value:.0f}%')
+    base = alt.Chart(rows).encode(
         x=alt.X('percentage:Q', title='Taxa dentro do grupo (%)',
-                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f')),
+                scale=alt.Scale(domain=[0, 100]),
+                axis=alt.Axis(format='.0f', grid=True, gridColor='#29313A',
+                              gridOpacity=0.65, titlePadding=14)),
         y=alt.Y('grupo:N', title=None, sort=group_order,
-                axis=alt.Axis(labelLimit=200)),
-        yOffset=alt.YOffset('indicador:N', sort=metric_order),
+                scale=alt.Scale(paddingInner=0.38, paddingOuter=0.18),
+                axis=alt.Axis(labelLimit=200, labelPadding=10, labelFontSize=12)),
+        yOffset=alt.YOffset('indicador:N', sort=metric_order,
+                            scale=alt.Scale(paddingInner=0.28, paddingOuter=0.16)),
         color=alt.Color('indicador:N', title=None, scale=alt.Scale(
             domain=metric_order, range=METRIC_COLORS),
-            legend=alt.Legend(orient='bottom')),
+            legend=alt.Legend(orient='bottom', symbolSize=90)),
         tooltip=[
             alt.Tooltip('grupo:N', title='Grupo'),
             alt.Tooltip('indicador:N', title='Indicador'),
@@ -1155,7 +1165,14 @@ def criar_grafico_perfis(results, dimension):
             alt.Tooltip('base:N', title='Universo'),
             alt.Tooltip('percentage:Q', title='Taxa (%)', format='.1f'),
         ],
-    ).properties(width='container', height=height).configure_view(stroke=None)
+    )
+    bars = base.mark_bar(size=13, cornerRadiusEnd=2)
+    labels = base.mark_text(align='left', baseline='middle', dx=7, fontSize=11,
+                            color='#E5E7EB').encode(text='rotulo:N')
+    return (bars + labels).properties(
+        width='container', height=height,
+        padding={'left': 8, 'right': 42, 'top': 8, 'bottom': 8},
+    ).configure_view(stroke=None)
 
 
 def criar_grafico_capacidade(results):
@@ -1224,7 +1241,6 @@ def criar_grafico_frustracoes(results):
     if rows.empty:
         return None
     rows['frustracao'] = rows['group'].map(FRUSTRATION_LABELS)
-    rows['destaque'] = rows['group'].isin(list(FRUSTRATION_LABELS)[:2])
     rows['tipo'] = 'Múltipla escolha; percentuais não somam 100%'
     order = list(FRUSTRATION_LABELS.values())
     base = alt.Chart(rows).encode(
@@ -1240,9 +1256,7 @@ def criar_grafico_frustracoes(results):
             alt.Tooltip('tipo:N', title='Pergunta'),
         ],
     )
-    bars = base.mark_bar(size=24).encode(
-        color=alt.condition('datum.destaque', alt.value('#D4866B'), alt.value(AZUL_PRINCIPAL))
-    )
+    bars = base.mark_bar(size=24, cornerRadiusEnd=2).encode(color=alt.value(AZUL_PRINCIPAL))
     labels = base.mark_text(align='left', baseline='middle', dx=7,
                             fontSize=12, color='#E5E7EB').encode(
         text=alt.Text('percentage:Q', format='.1f')
@@ -1254,14 +1268,14 @@ def criar_grafico_frustracoes(results):
 
 
 def criar_grafico_workflow(results):
-    """Uma categoria por tarefa, com denominador válido específico."""
+    """Uso e intenção à direita; resistência à esquerda, por tarefa."""
     from src.analysis import WORKFLOW_TASKS
 
     rows = _valid_rows(results)
     if rows.empty:
         return None
     labels = {'current': 'Já usa', 'plan': 'Pretende usar', 'no_plan': 'Não pretende'}
-    colors = [AZUL_PRINCIPAL, AZUL_MEDIO, CINZA]
+    colors = [AZUL_PRINCIPAL, AZUL_MEDIO, '#D4866B']
     rows['tarefa'] = rows['group'].map(WORKFLOW_TASKS)
     rows['situacao'] = rows['category'].map(labels)
     rows['situacao_tooltip'] = rows['category'].map({
@@ -1269,16 +1283,34 @@ def criar_grafico_workflow(results):
         'plan': 'Pretende usar nos próximos 3–5 anos',
         'no_plan': 'Não pretende usar nesta tarefa',
     })
-    rows['ordem'] = rows['category'].map({key: index for index, key in enumerate(labels)})
-    return alt.Chart(rows).mark_bar(size=26).encode(
-        x=alt.X('percentage:Q', stack='zero', title='Respostas dentro de cada tarefa (%)',
-                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f')),
-        y=alt.Y('tarefa:N', title=None, sort=list(WORKFLOW_TASKS.values()),
-                axis=alt.Axis(labelLimit=190)),
+    current_by_task = rows.loc[rows['category'].eq('current')].set_index('tarefa')['percentage']
+    rows['inicio'] = 0.0
+    rows['fim'] = rows['percentage'].astype(float)
+    planned = rows['category'].eq('plan')
+    rows.loc[planned, 'inicio'] = rows.loc[planned, 'tarefa'].map(current_by_task)
+    rows.loc[planned, 'fim'] = rows.loc[planned, 'inicio'] + rows.loc[planned, 'percentage']
+    resistance = rows['category'].eq('no_plan')
+    rows.loc[resistance, 'inicio'] = -rows.loc[resistance, 'percentage']
+    rows.loc[resistance, 'fim'] = 0.0
+
+    task_balance = (
+        rows.pivot(index='tarefa', columns='category', values='percentage')
+        .assign(balance=lambda table: table['current'] - table['no_plan'])
+        .sort_values('balance', ascending=False)
+    )
+    task_order = task_balance.index.tolist()
+    x_scale = alt.Scale(domain=[-70, 100])
+    bars = alt.Chart(rows).mark_bar(size=26, cornerRadius=2).encode(
+        x=alt.X('inicio:Q', title='Resistência ←  percentual dentro da tarefa  → uso atual e intenção',
+                scale=x_scale,
+                axis=alt.Axis(labelExpr="abs(datum.value) + '%'", grid=True,
+                              gridColor='#29313A', gridOpacity=0.65, titlePadding=14)),
+        x2=alt.X2('fim:Q'),
+        y=alt.Y('tarefa:N', title=None, sort=task_order,
+                axis=alt.Axis(labelLimit=210, labelPadding=10)),
         color=alt.Color('situacao:N', title=None, scale=alt.Scale(
             domain=list(labels.values()), range=colors),
             legend=alt.Legend(orient='bottom')),
-        order=alt.Order('ordem:Q'),
         tooltip=[
             alt.Tooltip('tarefa:N', title='Tarefa'),
             alt.Tooltip('situacao_tooltip:N', title='Situação'),
@@ -1286,4 +1318,11 @@ def criar_grafico_workflow(results):
             alt.Tooltip('valid_denominator:Q', title='Base válida', format=',d'),
             alt.Tooltip('percentage:Q', title='Dentro da tarefa (%)', format='.1f'),
         ],
-    ).properties(width='container', height=390).configure_view(stroke=None)
+    )
+    zero = alt.Chart(pd.DataFrame({'zero': [0]})).mark_rule(
+        color='#B8C0CC', opacity=0.55, strokeWidth=1
+    ).encode(x=alt.X('zero:Q', scale=x_scale, axis=None))
+    return (bars + zero).properties(
+        width='container', height=390,
+        padding={'left': 8, 'right': 28, 'top': 8, 'bottom': 8},
+    ).configure_view(stroke=None)

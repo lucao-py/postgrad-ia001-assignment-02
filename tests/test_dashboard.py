@@ -26,6 +26,10 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(chart_count(app), 7)
         self.assertEqual(len(app.metric), 0)
         self.assertTrue(any("65.6%" in item.value for item in app.caption))
+        self.assertTrue(any(
+            element.type == "markdown" and "Uso não resolve a confiança" in element.value
+            for element in app._tree
+        ))
         self.assertFalse(any("2025 inclui novo perfil" in item.value for item in app.caption))
         self.assertFalse(app.warning)
 

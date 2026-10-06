@@ -178,3 +178,10 @@ with impact_tab:
             "produtividade e preocupação com precisão ao mesmo tempo "
             f"({numerator}/{denominator} respostas válidas aos dois itens)."
         )
+
+    st.divider()
+    st.markdown("### Uso não resolve a confiança")
+    st.caption(
+        "Adoção, confiança e impacto não avançam em bloco: o uso se distribui de forma desigual "
+        "entre tarefas, e as frustrações permanecem. A IA já integra o trabalho, sem consenso de confiança."
+    )

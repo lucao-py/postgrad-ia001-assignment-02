@@ -14,6 +14,7 @@ from src.analysis import (
     agregar_workflow,
     calcular_insight_agentes,
 )
+from src.charts import criar_grafico_workflow
 from src.data import DataValidationError, carregar_base_historica, carregar_evidencias_2025
 
 
@@ -68,6 +69,15 @@ class StoryTests(unittest.TestCase):
             lambda rows: rows.numerator.sum() == rows.valid_denominator.iloc[0],
             include_groups=False,
         ).all())
+
+    def test_workflow_chart_uses_a_diverging_scale_without_reaggregating(self):
+        chart = criar_grafico_workflow(agregar_workflow(self.data)).to_dict()
+        bar_layer = next(layer for layer in chart["layer"] if layer["mark"]["type"] == "bar")
+        bars = bar_layer["encoding"]
+        self.assertEqual(bars["x"]["field"], "inicio")
+        self.assertEqual(bars["x2"]["field"], "fim")
+        self.assertNotIn("stack", bars["x"])
+        self.assertEqual(bars["x"]["scale"]["domain"], [-70, 100])
 
     def test_joint_agent_reference(self):
         result = calcular_insight_agentes(self.data)
