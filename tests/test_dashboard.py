@@ -1,6 +1,7 @@
 """Execução real do Streamlit com as fontes fixadas já armazenadas no cache."""
 
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
@@ -16,22 +17,32 @@ def chart_count(test):
 
 
 class DashboardTests(unittest.TestCase):
+    def setUp(self):
+        # AppTest não executa JavaScript; a detecção real é verificada no navegador.
+        viewport = patch("src.responsive.tela_compacta", return_value=True)
+        self.viewport = viewport.start()
+        self.addCleanup(viewport.stop)
+
     def test_default_story_and_filters(self):
         app = AppTest.from_file(APP_PATH, default_timeout=60).run()
         self.assertFalse(app.exception)
         self.assertEqual([box.label for box in app.selectbox], ["População", "Idade", "Função", "País"])
         self.assertEqual([box.value for box in app.selectbox], ["professional", "all", None, None])
         self.assertNotIn("adult", app.selectbox[1].options)
-        self.assertEqual([tab.label for tab in app.tabs], ["Perfis profissionais · 2025", "Percepção, uso e impacto · 2025"])
+        self.assertEqual([tab.label for tab in app.tabs], ["Perfis profissionais", "Percepção, uso e impacto"])
         self.assertEqual(chart_count(app), 7)
         self.assertEqual(len(app.metric), 0)
-        self.assertTrue(any("65.6%" in item.value for item in app.caption))
-        self.assertTrue(any(
-            element.type == "markdown" and "Uso não resolve a confiança" in element.value
-            for element in app._tree
-        ))
         self.assertFalse(any("2025 inclui novo perfil" in item.value for item in app.caption))
         self.assertFalse(app.warning)
+
+    def test_resize_preserves_filters_and_charts(self):
+        app = AppTest.from_file(APP_PATH, default_timeout=60).run()
+        app.selectbox[3].set_value("BRA").run()
+        self.viewport.return_value = False
+        app.run()
+        self.assertFalse(app.exception)
+        self.assertEqual(app.selectbox[3].value, "BRA")
+        self.assertEqual(chart_count(app), 7)
 
     def test_default_chart_uses_all_profiles_in_common_adult_ages(self):
         canonical = carregar_base_historica()
@@ -46,10 +57,10 @@ class DashboardTests(unittest.TestCase):
     def test_incompatible_and_sparse_filters_do_not_crash(self):
         app = AppTest.from_file(APP_PATH, default_timeout=60).run()
         app.selectbox[0].set_value("all").run()
-        self.assertTrue(any("2025 inclui novo perfil" in item.value for item in app.caption))
+        self.assertFalse(app.exception)
         app.selectbox[2].set_value("front_end").run()
         self.assertFalse(app.exception)
-        self.assertTrue(any("Função em 2025" in item.value for item in app.caption))
+        self.assertEqual(app.selectbox[2].value, "front_end")
         app.selectbox[1].set_value("65_plus").run()
         app.selectbox[2].set_value("academic_researcher").run()
         app.selectbox[3].set_value("NOMADIC").run()

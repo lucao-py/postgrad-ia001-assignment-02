@@ -1057,23 +1057,50 @@ def _valid_rows(results):
     return results.loc[results['availability_state'].eq('available')].copy()
 
 
-def _estilo_dashboard(chart):
+def _legenda_dashboard(compact=False, **kwargs):
+    if compact:
+        kwargs['title'] = None
+    return alt.Legend(
+        orient='bottom' if compact else 'right',
+        direction='vertical', columns=1, **kwargs,
+    )
+
+
+def _eixo_categorias(labels, compact=False, width=15, **kwargs):
+    """Quebra nomes por palavras, mantendo o texto completo nos tooltips."""
+    import json
+    import textwrap
+
+    if not compact:
+        return alt.Axis(**kwargs)
+    wrapped = {label: '\n'.join(textwrap.wrap(label, width, break_long_words=False))
+               for label in labels}
+    kwargs.update(
+        labelExpr=f"split(({json.dumps(wrapped, ensure_ascii=False)})[datum.label] || datum.label, '\\n')",
+        labelLimit=0, labelPadding=8, labelLineHeight=13, labelFontSize=11,
+        labelOverlap=False,
+    )
+    return alt.Axis(**kwargs)
+
+
+def _estilo_dashboard(chart, compact=False):
     """Contraste consistente para eixos e legendas da narrativa atual."""
     return (chart
             .configure_view(stroke=None)
             .configure_axis(
                 labelColor='#E5E7EB', labelFontSize=12, labelFontWeight=600,
-                titleColor='#F3F4F6', titleFontSize=13, titleFontWeight=600,
+                titleColor='#F3F4F6', titleFontSize=11 if compact else 13, titleFontWeight=600,
             )
             .configure_legend(
-                orient='right', direction='vertical', offset=12,
+                orient='bottom' if compact else 'right',
+                direction='horizontal' if compact else 'vertical', offset=16 if compact else 12,
                 labelColor='#E5E7EB', labelFontSize=12, labelFontWeight=600,
                 labelLimit=210, symbolSize=90,
                 titleColor='#F3F4F6', titleFontWeight=600, titleLimit=240,
             ))
 
 
-def criar_grafico_tendencias(adocao, confianca):
+def criar_grafico_tendencias(adocao, confianca, *, compact=False):
     """Duas taxas de universos distintos, na mesma escala percentual."""
     rows = _valid_rows(pd.concat([adocao, confianca], ignore_index=True))
     if rows.empty:
@@ -1095,7 +1122,7 @@ def criar_grafico_tendencias(adocao, confianca):
                 axis=alt.Axis(format='.0f', titlePadding=12)),
         color=alt.Color('indicador:N', title='Inteligência artificial', scale=alt.Scale(
             domain=domain, range=['#4C78A8', '#D4866B']),
-            legend=alt.Legend(orient='right', direction='vertical')),
+            legend=_legenda_dashboard(compact)),
         tooltip=[
             alt.Tooltip('year:O', title='Ano'),
             alt.Tooltip('indicador:N', title='Indicador'),
@@ -1115,23 +1142,23 @@ def criar_grafico_tendencias(adocao, confianca):
     )
     adoption_labels = base.transform_filter(
         alt.datum.metric == 'ai_current_use'
-    ).mark_text(align='left', baseline='middle', dx=9, dy=-15,
+    ).mark_text(align='center' if compact else 'left', baseline='middle', dx=0 if compact else 9, dy=-15,
                 fontWeight='bold', fontSize=12).encode(
         text=alt.Text('percentage:Q', format='.1f')
     )
     trust_labels = base.transform_filter(
         alt.datum.metric == 'ai_trust_positive'
-    ).mark_text(align='left', baseline='middle', dx=9, dy=17,
+    ).mark_text(align='center' if compact else 'left', baseline='middle', dx=0 if compact else 9, dy=17,
                 fontWeight='bold', fontSize=12).encode(
         text=alt.Text('percentage:Q', format='.1f')
     )
     return _estilo_dashboard((line + points + adoption_labels + trust_labels).properties(
-        width='container', height=300,
-        padding={'left': 28, 'right': 36, 'top': 22, 'bottom': 8},
-    ))
+        width='container', height=340 if compact else 300,
+        padding={'left': 0 if compact else 28, 'right': 8 if compact else 36, 'top': 22, 'bottom': 8},
+    ), compact)
 
 
-def criar_grafico_perfis(results, dimension):
+def criar_grafico_perfis(results, dimension, *, compact=False):
     """Taxas dentro de cada grupo, com a base válida em cada tooltip."""
     rows = _valid_rows(results)
     if rows.empty:
@@ -1148,6 +1175,8 @@ def criar_grafico_perfis(results, dimension):
         height = 310
     else:
         raise ValueError('Dimensão de perfil não suportada')
+    if compact:
+        height += 120
     rows['grupo'] = rows['group'].map(label_map)
     rows['indicador'] = rows['metric'].map(METRIC_LABELS)
     rows['base'] = rows['metric'].map({
@@ -1164,18 +1193,18 @@ def criar_grafico_perfis(results, dimension):
     metric_order = list(METRIC_LABELS.values())
     rows['rotulo'] = rows['percentage'].map(lambda value: f'{value:.0f}%')
     base = alt.Chart(rows).encode(
-        x=alt.X('percentage:Q', title='Taxa dentro do grupo (%)',
+        x=alt.X('percentage:Q', title='Dentro do grupo (%)' if compact else 'Taxa dentro do grupo (%)',
                 scale=alt.Scale(domain=[0, 100]),
-                axis=alt.Axis(format='.0f', grid=True, gridColor='#29313A',
+                axis=alt.Axis(format='.0f', tickCount=4 if compact else 6, grid=True, gridColor='#29313A',
                               gridOpacity=0.65, titlePadding=14)),
         y=alt.Y('grupo:N', title=None, sort=group_order,
                 scale=alt.Scale(paddingInner=0.38, paddingOuter=0.18),
-                axis=alt.Axis(labelLimit=200, labelPadding=10, labelFontSize=12)),
+                axis=_eixo_categorias(group_order, compact, labelLimit=200, labelPadding=10, labelFontSize=12)),
         yOffset=alt.YOffset('indicador:N', sort=metric_order,
                             scale=alt.Scale(paddingInner=0.28, paddingOuter=0.16)),
         color=alt.Color('indicador:N', title='Inteligência artificial', scale=alt.Scale(
             domain=metric_order, range=METRIC_COLORS),
-            legend=alt.Legend(orient='right', direction='vertical')),
+            legend=_legenda_dashboard(compact)),
         tooltip=[
             alt.Tooltip('grupo:N', title='Grupo'),
             alt.Tooltip('indicador:N', title='Indicador'),
@@ -1190,11 +1219,11 @@ def criar_grafico_perfis(results, dimension):
                             color='#E5E7EB').encode(text='rotulo:N')
     return _estilo_dashboard((bars + labels).properties(
         width='container', height=height,
-        padding={'left': 8, 'right': 42, 'top': 8, 'bottom': 8},
-    ))
+        padding={'left': 0 if compact else 8, 'right': 28 if compact else 42, 'top': 8, 'bottom': 8},
+    ), compact)
 
 
-def criar_grafico_capacidade(results):
+def criar_grafico_capacidade(results, *, compact=False):
     """Mapa de calor da capacidade percebida, com usuários atuais por frequência."""
     rows = _valid_rows(results)
     if rows.empty:
@@ -1202,11 +1231,22 @@ def criar_grafico_capacidade(results):
     rows['frequencia'] = rows['group'].map(FREQUENCY_LABELS)
     rows['percepcao'] = rows['category'].map(COMPLEXITY_LABELS)
     rows['rotulo'] = rows['percentage'].map(lambda value: f'{value:.0f}%' if value >= 1 else '')
+    x = alt.X('frequencia:N', title='Frequência de uso',
+              sort=list(FREQUENCY_LABELS.values()),
+              axis=alt.Axis(labelExpr="replace(datum.label, 'Uso ', '')", labelAngle=0,
+                            labelAlign='center', labelFontSize=10,
+                            labelOverlap=False, labelLimit=0)) if compact else alt.X(
+        'percepcao:N', title='Capacidade em tarefas complexas',
+        sort=list(COMPLEXITY_LABELS.values()),
+        axis=alt.Axis(labelAngle=-25, labelLimit=150, labelOverlap=False),
+    )
+    y = alt.Y('percepcao:N', title=None,
+              sort=list(COMPLEXITY_LABELS.values()),
+              axis=_eixo_categorias(COMPLEXITY_LABELS.values(), True)) if compact else alt.Y(
+        'frequencia:N', title=None, sort=list(FREQUENCY_LABELS.values()),
+    )
     base = alt.Chart(rows).encode(
-        x=alt.X('percepcao:N', title='Capacidade em tarefas complexas',
-                sort=list(COMPLEXITY_LABELS.values()),
-                axis=alt.Axis(labelAngle=-25, labelLimit=150, labelOverlap=False)),
-        y=alt.Y('frequencia:N', title=None, sort=list(FREQUENCY_LABELS.values())),
+        x=x, y=y,
         tooltip=[
             alt.Tooltip('frequencia:N', title='Frequência'),
             alt.Tooltip('percepcao:N', title='Percepção'),
@@ -1217,16 +1257,19 @@ def criar_grafico_capacidade(results):
     )
     cells = base.mark_rect(stroke='#0E1117', strokeWidth=2).encode(
         color=alt.Color('percentage:Q', title='Dentro do grupo (%)',
-                        scale=alt.Scale(domain=[0, 100], scheme='blues'))
+                        scale=alt.Scale(domain=[0, 100], scheme='blues'),
+                        legend=alt.Legend(orient='bottom', direction='horizontal', gradientLength=160)
+                        if compact else alt.Legend())
     )
     labels = base.mark_text(fontSize=11, fontWeight='bold').encode(
         text='rotulo:N',
         color=alt.condition(alt.datum.percentage >= 30, alt.value('white'), alt.value(TEXTO_ESCURO)),
     )
-    return _estilo_dashboard((cells + labels).properties(width='container', height=240))
+    return _estilo_dashboard((cells + labels).properties(
+        width='container', height=420 if compact else 240), compact)
 
 
-def criar_grafico_mudanca(results):
+def criar_grafico_mudanca(results, *, compact=False):
     """Distribuição da mudança percebida por intensidade de uso de IA."""
     rows = _valid_rows(results)
     if rows.empty:
@@ -1235,12 +1278,13 @@ def criar_grafico_mudanca(results):
     rows['mudanca'] = rows['category'].map(CHANGE_LABELS)
     rows['ordem'] = rows['category'].map({key: index for index, key in enumerate(CHANGE_LABELS)})
     return _estilo_dashboard(alt.Chart(rows).mark_bar(size=32).encode(
-        x=alt.X('percentage:Q', stack='zero', title='Respostas dentro de cada frequência (%)',
-                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f')),
-        y=alt.Y('frequencia:N', title=None, sort=list(FREQUENCY_LABELS.values())),
+        x=alt.X('percentage:Q', stack='zero', title='Dentro da frequência (%)' if compact else 'Respostas dentro de cada frequência (%)',
+                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f', tickCount=4 if compact else 6)),
+        y=alt.Y('frequencia:N', title=None, sort=list(FREQUENCY_LABELS.values()),
+                axis=_eixo_categorias(FREQUENCY_LABELS.values(), compact, width=9)),
         color=alt.Color('mudanca:N', title='Mudança percebida', scale=alt.Scale(
             domain=list(CHANGE_LABELS.values()), range=CORES_MUDANCA),
-            legend=alt.Legend(orient='right', direction='vertical')),
+            legend=_legenda_dashboard(compact)),
         order=alt.Order('ordem:Q'),
         tooltip=[
             alt.Tooltip('frequencia:N', title='Frequência'),
@@ -1249,10 +1293,10 @@ def criar_grafico_mudanca(results):
             alt.Tooltip('valid_denominator:Q', title='Base válida', format=',d'),
             alt.Tooltip('percentage:Q', title='Dentro da frequência (%)', format='.1f'),
         ],
-    ).properties(width='container', height=245))
+    ).properties(width='container', height=340 if compact else 245), compact)
 
 
-def criar_grafico_frustracoes(results):
+def criar_grafico_frustracoes(results, *, compact=False):
     """Frustrações relatadas por usuários atuais; respostas múltiplas."""
     from src.analysis import FRUSTRATION_LABELS
 
@@ -1263,10 +1307,10 @@ def criar_grafico_frustracoes(results):
     rows['tipo'] = 'Múltipla escolha; percentuais não somam 100%'
     order = list(FRUSTRATION_LABELS.values())
     base = alt.Chart(rows).encode(
-        x=alt.X('percentage:Q', title='Usuários com resposta válida (%)',
-                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f')),
+        x=alt.X('percentage:Q', title='Relataram (%)' if compact else 'Usuários com resposta válida (%)',
+                scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f', tickCount=4 if compact else 6)),
         y=alt.Y('frustracao:N', title=None, sort=order,
-                axis=alt.Axis(labelLimit=260)),
+                axis=_eixo_categorias(order, compact, labelLimit=260)),
         tooltip=[
             alt.Tooltip('frustracao:N', title='Frustração'),
             alt.Tooltip('numerator:Q', title='Respondentes', format=',d'),
@@ -1281,12 +1325,12 @@ def criar_grafico_frustracoes(results):
         text=alt.Text('percentage:Q', format='.1f')
     )
     return _estilo_dashboard((bars + labels).properties(
-        width='container', height=245,
-        padding={'left': 8, 'right': 38, 'top': 8, 'bottom': 8},
-    ))
+        width='container', height=320 if compact else 245,
+        padding={'left': 0 if compact else 8, 'right': 28 if compact else 38, 'top': 8, 'bottom': 8},
+    ), compact)
 
 
-def criar_grafico_workflow(results):
+def criar_grafico_workflow(results, *, compact=False):
     """Uso e intenção à direita; resistência à esquerda, por tarefa."""
     from src.analysis import WORKFLOW_TASKS
 
@@ -1320,16 +1364,16 @@ def criar_grafico_workflow(results):
     task_order = task_balance.index.tolist()
     x_scale = alt.Scale(domain=[-70, 100])
     bars = alt.Chart(rows).mark_bar(size=26, cornerRadius=2).encode(
-        x=alt.X('inicio:Q', title='Resistência ←  percentual dentro da tarefa  → uso atual e intenção',
+        x=alt.X('inicio:Q', title='Dentro da tarefa (%)' if compact else 'Resistência ←  percentual dentro da tarefa  → uso atual e intenção',
                 scale=x_scale,
-                axis=alt.Axis(labelExpr="abs(datum.value) + '%'", grid=True,
+                axis=alt.Axis(labelExpr="abs(datum.value) + '%'", tickCount=4 if compact else 8, grid=True,
                               gridColor='#29313A', gridOpacity=0.65, titlePadding=14)),
         x2=alt.X2('fim:Q'),
         y=alt.Y('tarefa:N', title=None, sort=task_order,
-                axis=alt.Axis(labelLimit=210, labelPadding=10)),
+                axis=_eixo_categorias(task_order, compact, labelLimit=210, labelPadding=10)),
         color=alt.Color('situacao:N', title=None, scale=alt.Scale(
             domain=list(labels.values()), range=colors),
-            legend=alt.Legend(orient='right', direction='vertical')),
+            legend=_legenda_dashboard(compact)),
         tooltip=[
             alt.Tooltip('tarefa:N', title='Tarefa'),
             alt.Tooltip('situacao_tooltip:N', title='Situação'),
@@ -1342,6 +1386,6 @@ def criar_grafico_workflow(results):
         color='#B8C0CC', opacity=0.55, strokeWidth=1
     ).encode(x=alt.X('zero:Q', scale=x_scale))
     return _estilo_dashboard((bars + zero).properties(
-        width='container', height=390,
-        padding={'left': 8, 'right': 28, 'top': 8, 'bottom': 8},
-    ))
+        width='container', height=510 if compact else 390,
+        padding={'left': 0 if compact else 8, 'right': 8 if compact else 28, 'top': 8, 'bottom': 8},
+    ), compact)

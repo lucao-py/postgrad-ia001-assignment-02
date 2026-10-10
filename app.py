@@ -23,6 +23,7 @@ from src.charts import (
     criar_grafico_workflow,
 )
 from src.data import ADULT_AGE_GROUPS, carregar_base_historica, carregar_evidencias_2025
+from src.responsive import tela_compacta
 
 
 st.set_page_config(
@@ -49,6 +50,35 @@ st.markdown(
     div[data-testid="stMetricLabel"] { margin-bottom: 0.35rem; }
     div[data-testid="stMetricValue"] { line-height: 1.2; }
     div[data-testid="stTabs"] { margin-top: 1.2rem; }
+    .st-key-viewport { display: none; }
+    @media (max-width: 1023px) {
+        .block-container { padding: 1.25rem 1rem 2rem; }
+        h1 { font-size: clamp(1.35rem, 5.6vw, 2rem) !important;
+             line-height: 1.3 !important; overflow-wrap: normal !important; }
+        h2, h3 { font-size: 1.1rem !important; line-height: 1.4 !important;
+                 margin-top: 1rem !important; }
+        .st-key-global_filters [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap; gap: 0.75rem;
+        }
+        .st-key-global_filters [data-testid="stColumn"] {
+            flex: 1 1 calc(50% - 0.75rem) !important;
+            width: calc(50% - 0.75rem) !important; min-width: 0 !important;
+        }
+        .st-key-global_filters [role="combobox"] { font-size: 0.75rem; }
+        [data-testid="stTabs"] [role="tablist"] { gap: 0.5rem; }
+        [data-testid="stTabs"] [role="tab"] {
+            flex: 1; min-width: 0; height: auto; min-height: 48px;
+            white-space: normal; padding: 0.5rem 0.25rem;
+        }
+        [data-testid="stTabs"] [role="tab"] p {
+            white-space: normal; font-size: 0.78rem; line-height: 1.4;
+        }
+    }
+    @media (max-width: 359px) {
+        .st-key-global_filters [data-testid="stColumn"] {
+            flex-basis: 100% !important; width: 100% !important;
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -107,11 +137,13 @@ def mostrar_grafico(chart, results):
 
 
 df = carregar_base_dashboard()
+compact = tela_compacta()
 st.title("Inteligência Artificial no Desenvolvimento de Software")
 
 countries = sorted(df["country"].dropna().unique().tolist(), key=rotulo_pais)
 role_options = list(PROFILE_LABELS)
-population_col, age_col, role_col, country_col = st.columns(4)
+with st.container(key="global_filters"):
+    population_col, age_col, role_col, country_col = st.columns(4)
 with population_col:
     population = st.selectbox("População", list(POPULATION_LABELS),
                               format_func=POPULATION_LABELS.get, index=0)
@@ -140,35 +172,35 @@ st.subheader("A adoção da inteligência artificial está crescendo. A confian�
 adoption = calcular_serie(df, "ai_current_use", filters)
 trust = calcular_serie(df, "ai_trust_positive", filters)
 history = pd.concat([adoption, trust], ignore_index=True)
-mostrar_grafico(criar_grafico_tendencias(adoption, trust), history)
+mostrar_grafico(criar_grafico_tendencias(adoption, trust, compact=compact), history)
 
 profiles_tab, impact_tab = st.tabs(["Perfis profissionais", "Percepção, uso e impacto"])
 
 with profiles_tab:
     st.markdown("### Como a adoção varia com a experiência profissional?")
     experience = agregar_perfis(df, "work_experience", 2025, filters)
-    mostrar_grafico(criar_grafico_perfis(experience, "work_experience"), experience)
+    mostrar_grafico(criar_grafico_perfis(experience, "work_experience", compact=compact), experience)
 
     st.markdown("### O padrão varia entre funções?")
     roles = agregar_perfis(df, "role", 2025, filters)
-    mostrar_grafico(criar_grafico_perfis(roles, "role"), roles)
+    mostrar_grafico(criar_grafico_perfis(roles, "role", compact=compact), roles)
 
 with impact_tab:
     st.markdown("### Quem usa inteligência artificial com mais frequência percebe maior capacidade em tarefas complexas?")
     capability = agregar_capacidade(df, 2025, filters)
-    mostrar_grafico(criar_grafico_capacidade(capability), capability)
+    mostrar_grafico(criar_grafico_capacidade(capability, compact=compact), capability)
 
     st.markdown("### Que problemas aparecem no uso de inteligência artificial?")
     frustrations = agregar_frustracoes(df, 2025, filters)
-    mostrar_grafico(criar_grafico_frustracoes(frustrations), frustrations)
+    mostrar_grafico(criar_grafico_frustracoes(frustrations, compact=compact), frustrations)
 
     st.markdown("### Em quais tarefas a inteligência artificial já é usada — e onde há resistência?")
     workflow = agregar_workflow(df, 2025, filters)
-    mostrar_grafico(criar_grafico_workflow(workflow), workflow)
+    mostrar_grafico(criar_grafico_workflow(workflow, compact=compact), workflow)
 
     st.markdown("### O uso mais intenso se associa a maiores mudanças no trabalho?")
     change = agregar_mudanca(df, 2025, filters)
-    mostrar_grafico(criar_grafico_mudanca(change), change)
+    mostrar_grafico(criar_grafico_mudanca(change, compact=compact), change)
  
     agent = calcular_insight_agentes(df, 2025, filters)
     if agent["availability_state"] == "available":

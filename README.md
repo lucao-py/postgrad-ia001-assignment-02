@@ -20,6 +20,12 @@ python -m streamlit run app.py
 
 Na primeira execução, os arquivos anuais são baixados para `~/.cache/ufrgs-ai-survey/` e verificados por tamanho e SHA-256 antes da análise. As versões, o schema, a cobertura, as bases dos indicadores, os resultados de referência e os limites estão em [Fundação analítica](docs/analytical-foundation.md).
 
+## Layout responsivo
+
+Em telas abaixo de 1024 pixels, os filtros ocupam duas colunas, as legendas ficam abaixo dos gráficos e os rótulos longos quebram por palavras. Abaixo de 360 pixels, os filtros ficam em uma coluna. O mapa de calor troca os eixos para manter suas seis categorias legíveis. Os valores, denominadores e tooltips permanecem iguais; no computador, as legendas continuam à direita.
+
+A largura é detectada por um componente nativo do Streamlit, sem dependências adicionais. A página recalcula o layout ao cruzar o limite de 1024 pixels, preservando os filtros da sessão.
+
 ## Verificar
 
 ```bash
