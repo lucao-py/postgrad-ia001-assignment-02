@@ -1,8 +1,13 @@
 # IA no Desenvolvimento de Software
 
+## Lucas de Oliveira Santos
+
 Dashboard da disciplina IA001 (UFRGS) com as pesquisas oficiais do Stack Overflow Developer Survey de 2023, 2024 e 2025. A análise acompanha a expansão do uso atual de IA e da confiança entre usuários atuais, compara perfis profissionais de 2025 e examina capacidade percebida, frustrações, adoção por tarefa e mudanças no trabalho.
 
 A visualização histórica usa a mesma escala de 0–100% para duas taxas com **bases distintas**. O uso atual considera respostas válidas sobre uso de IA; a confiança considera somente usuários atuais com resposta válida de confiança. O recorte padrão inclui profissionais de 18 anos ou mais. As abas apresentam perfis e, em sequência, capacidade, frustrações, uso por tarefa e mudança percebida. O fechamento sobre agentes usa respostas válidas de produtividade percebida e preocupação com precisão dos mesmos usuários.
+
+## Acesse o dashboard aqui
+https://trustaisurvey.streamlit.app/
 
 ## Executar
 
