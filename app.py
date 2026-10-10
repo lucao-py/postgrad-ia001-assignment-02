@@ -134,12 +134,6 @@ adoption = calcular_serie(df, "ai_current_use", filters)
 trust = calcular_serie(df, "ai_trust_positive", filters)
 history = pd.concat([adoption, trust], ignore_index=True)
 mostrar_grafico(criar_grafico_tendencias(adoption, trust), history)
-base_note = "Bases distintas; confiança só entre usuários atuais com resposta válida."
-if population == "all":
-    base_note += " 2025 inclui novo perfil."
-st.caption(base_note)
-if role_choice is not None:
-    st.caption("Função em 2025 também pode refletir o último ano de trabalho.")
 
 profiles_tab, impact_tab = st.tabs(["Perfis profissionais · 2025", "Percepção, uso e impacto · 2025"])
 
@@ -168,20 +162,9 @@ with impact_tab:
     st.markdown("### O uso mais intenso se associa a maiores mudanças no trabalho?")
     change = agregar_mudanca(df, 2025, filters)
     mostrar_grafico(criar_grafico_mudanca(change), change)
-
+ 
     agent = calcular_insight_agentes(df, 2025, filters)
     if agent["availability_state"] == "available":
         numerator = f"{agent['numerator']:,}".replace(",", ".")
         denominator = f"{agent['valid_denominator']:,}".replace(",", ".")
-        st.caption(
-            f"Entre usuários atuais de agentes, {agent['percentage']:.1f}% relatam mais "
-            "produtividade e preocupação com precisão ao mesmo tempo "
-            f"({numerator}/{denominator} respostas válidas aos dois itens)."
-        )
-
-    st.divider()
-    st.markdown("### Uso não resolve a confiança")
-    st.caption(
-        "Adoção, confiança e impacto não avançam em bloco: o uso se distribui de forma desigual "
-        "entre tarefas, e as frustrações permanecem. A IA já integra o trabalho, sem consenso de confiança."
-    )
+        
