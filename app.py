@@ -1,4 +1,4 @@
-"""Uso crescente, confiança, limites e adoção seletiva de IA no trabalho."""
+"""Uso crescente, confiança, limites e adoção seletiva de inteligência artificial no trabalho."""
 
 import pandas as pd
 import pycountry
@@ -26,7 +26,7 @@ from src.data import ADULT_AGE_GROUPS, carregar_base_historica, carregar_evidenc
 
 
 st.set_page_config(
-    page_title="IA no Desenvolvimento de Software",
+    page_title="Inteligência Artificial no Desenvolvimento de Software",
     layout="wide",
     menu_items={},
 )
@@ -34,7 +34,10 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    .block-container { max-width: 1450px; padding-top: 2.3rem; padding-bottom: 3rem; }
+    .block-container {
+        max-width: 1550px;
+        padding: 2.3rem clamp(2rem, 4vw, 4rem) 3rem;
+    }
     h1 { font-size: 2.75rem !important; line-height: 1.20 !important;
          letter-spacing: 0.01em; margin-bottom: 0.8rem !important; }
     h2 { font-size: 1.75rem !important; line-height: 1.30 !important;
@@ -81,6 +84,10 @@ def rotulo_pais(code):
         return "Nômade (sem país)"
     if code == "XKX":
         return "Kosovo"
+    if code == "PRK":
+        return "Coreia do Norte"
+    if code == "KOR":
+        return "Coreia do Sul"
     country = pycountry.countries.get(alpha_3=code)
     return country.name if country else code
 
@@ -112,7 +119,7 @@ with age_col:
     age_choice = st.selectbox(
         "Idade", ["all", *ADULT_AGE_GROUPS],
         format_func=lambda choice: "Todas as idades" if choice == "all" else AGE_LABELS[choice],
-        help="Todas as faixas adultas comparáveis entre 2023 e 2025 (18+).",
+        help="Todas as faixas adultas comparáveis entre 2023 e 2025 (18 anos ou mais).",
         index=0,
     )
 with role_col:
@@ -129,13 +136,13 @@ filters = {
     "countries": None if country_choice is None else (country_choice,),
 }
 
-st.subheader("A adoção de IA está crescendo. A confiança acompanha?")
+st.subheader("A adoção da inteligência artificial está crescendo. A confiança acompanha?")
 adoption = calcular_serie(df, "ai_current_use", filters)
 trust = calcular_serie(df, "ai_trust_positive", filters)
 history = pd.concat([adoption, trust], ignore_index=True)
 mostrar_grafico(criar_grafico_tendencias(adoption, trust), history)
 
-profiles_tab, impact_tab = st.tabs(["Perfis profissionais · 2025", "Percepção, uso e impacto · 2025"])
+profiles_tab, impact_tab = st.tabs(["Perfis profissionais", "Percepção, uso e impacto"])
 
 with profiles_tab:
     st.markdown("### Como a adoção varia com a experiência profissional?")
@@ -147,15 +154,15 @@ with profiles_tab:
     mostrar_grafico(criar_grafico_perfis(roles, "role"), roles)
 
 with impact_tab:
-    st.markdown("### Quem usa IA com mais frequência percebe maior capacidade em tarefas complexas?")
+    st.markdown("### Quem usa inteligência artificial com mais frequência percebe maior capacidade em tarefas complexas?")
     capability = agregar_capacidade(df, 2025, filters)
     mostrar_grafico(criar_grafico_capacidade(capability), capability)
 
-    st.markdown("### Que problemas aparecem no uso de IA?")
+    st.markdown("### Que problemas aparecem no uso de inteligência artificial?")
     frustrations = agregar_frustracoes(df, 2025, filters)
     mostrar_grafico(criar_grafico_frustracoes(frustrations), frustrations)
 
-    st.markdown("### Em quais tarefas a IA já é usada — e onde há resistência?")
+    st.markdown("### Em quais tarefas a inteligência artificial já é usada — e onde há resistência?")
     workflow = agregar_workflow(df, 2025, filters)
     mostrar_grafico(criar_grafico_workflow(workflow), workflow)
 

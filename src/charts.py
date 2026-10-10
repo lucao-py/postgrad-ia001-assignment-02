@@ -202,7 +202,7 @@ def criar_grafico_confianca(df):
             ),
             y=alt.Y(
                 'Uso:N',
-                title='Frequência de uso de IA',
+                title='Frequência de uso de inteligência artificial',
                 sort=ORDEM_USO,
                 axis=alt.Axis(
                     labelFontSize=12,
@@ -333,7 +333,7 @@ def criar_grafico_complexidade(df):
         ),
         y=alt.Y(
             'Uso:N',
-            title='Frequência de uso de IA',
+            title='Frequência de uso de inteligência artificial',
             sort=ORDEM_USO,
             axis=alt.Axis(
                 labelFontSize=12,
@@ -467,7 +467,7 @@ def criar_grafico_experiencia(df):
             ),
             y=alt.Y(
                 'Uso:N',
-                title='Frequência de uso de IA',
+                title='Frequência de uso de inteligência artificial',
                 sort=ORDEM_USO,
                 axis=alt.Axis(
                     labelFontSize=12,
@@ -950,7 +950,7 @@ def criar_mapa_ia(
         nan_fill_color='#D9DEE5',
         nan_fill_opacity=0.90,
 
-        legend_name='Uso diário de IA (%)',
+        legend_name='Uso diário de inteligência artificial (%)',
 
         bins=[
             0,
@@ -976,7 +976,7 @@ def criar_mapa_ia(
 
         aliases=[
             'País:',
-            'Uso diário de IA:',
+            'Uso diário de inteligência artificial:',
             'Respondentes:',
             'Usuários diários:'
         ],
@@ -1009,18 +1009,18 @@ def criar_mapa_ia(
 
 # Gráficos do dashboard histórico. Todos recebem somente agregações da análise.
 METRIC_LABELS = {
-    'ai_current_use': 'Uso atual de IA',
-    'ai_daily_use': 'Uso diário de IA',
+    'ai_current_use': 'Uso atual',
+    'ai_daily_use': 'Uso diário',
     'ai_trust_positive': 'Confiança positiva',
 }
 METRIC_COLORS = ['#4C78A8', '#8FB6D9', '#D4866B']
 PROFILE_LABELS = {
     'academic_researcher': 'Pesquisa acadêmica',
     'cloud_infrastructure': 'Infraestrutura em nuvem',
-    'data_business_analyst': 'Análise de dados/negócios',
-    'qa_test': 'QA e testes',
+    'data_business_analyst': 'Análise de dados e negócios',
+    'qa_test': 'Qualidade e testes',
     'back_end': 'Back-end',
-    'desktop_enterprise': 'Desktop/empresarial',
+    'desktop_enterprise': 'Desktop e empresarial',
     'embedded': 'Sistemas embarcados',
     'front_end': 'Front-end',
     'full_stack': 'Full-stack',
@@ -1042,13 +1042,13 @@ COMPLEXITY_LABELS = {
     'neutral': 'Neutra',
     'good_with_limits': 'Boa, com limites',
     'very_good': 'Muito boa',
-    'not_used_or_unknown': 'Não usa/não sabe',
+    'not_used_or_unknown': 'Não usa ou não sabe',
 }
 CHANGE_LABELS = {
     'minimal_or_none': 'Nenhuma ou mínima',
     'somewhat': 'Moderada',
     'great_extent': 'Grande',
-    'non_ai_factors': 'Fatores não IA',
+    'non_ai_factors': 'Outros fatores',
 }
 
 
@@ -1057,29 +1057,45 @@ def _valid_rows(results):
     return results.loc[results['availability_state'].eq('available')].copy()
 
 
+def _estilo_dashboard(chart):
+    """Contraste consistente para eixos e legendas da narrativa atual."""
+    return (chart
+            .configure_view(stroke=None)
+            .configure_axis(
+                labelColor='#E5E7EB', labelFontSize=12, labelFontWeight=600,
+                titleColor='#F3F4F6', titleFontSize=13, titleFontWeight=600,
+            )
+            .configure_legend(
+                orient='right', direction='vertical', offset=12,
+                labelColor='#E5E7EB', labelFontSize=12, labelFontWeight=600,
+                labelLimit=210, symbolSize=90,
+                titleColor='#F3F4F6', titleFontWeight=600, titleLimit=240,
+            ))
+
+
 def criar_grafico_tendencias(adocao, confianca):
     """Duas taxas de universos distintos, na mesma escala percentual."""
     rows = _valid_rows(pd.concat([adocao, confianca], ignore_index=True))
     if rows.empty:
         return None
     rows['indicador'] = rows['metric'].map({
-        'ai_current_use': 'Uso atual de IA',
+        'ai_current_use': 'Uso atual',
         'ai_trust_positive': 'Confiança positiva',
     })
     rows['base'] = rows['metric'].map({
-        'ai_current_use': 'Respostas válidas sobre uso de IA',
+        'ai_current_use': 'Respostas válidas sobre uso de inteligência artificial',
         'ai_trust_positive': 'Usuários atuais com resposta válida de confiança',
     })
-    domain = ['Uso atual de IA', 'Confiança positiva']
+    domain = ['Uso atual', 'Confiança positiva']
     base = alt.Chart(rows).encode(
         x=alt.X('year:O', title='Ano da pesquisa', sort=[2023, 2024, 2025],
                 axis=alt.Axis(labelAngle=0)),
         y=alt.Y('percentage:Q', title='Taxa (%)',
                 scale=alt.Scale(domain=[0, 100]),
                 axis=alt.Axis(format='.0f', titlePadding=12)),
-        color=alt.Color('indicador:N', title=None, scale=alt.Scale(
+        color=alt.Color('indicador:N', title='Inteligência artificial', scale=alt.Scale(
             domain=domain, range=['#4C78A8', '#D4866B']),
-            legend=alt.Legend(orient='bottom')),
+            legend=alt.Legend(orient='right', direction='vertical')),
         tooltip=[
             alt.Tooltip('year:O', title='Ano'),
             alt.Tooltip('indicador:N', title='Indicador'),
@@ -1109,10 +1125,10 @@ def criar_grafico_tendencias(adocao, confianca):
                 fontWeight='bold', fontSize=12).encode(
         text=alt.Text('percentage:Q', format='.1f')
     )
-    return (line + points + adoption_labels + trust_labels).properties(
+    return _estilo_dashboard((line + points + adoption_labels + trust_labels).properties(
         width='container', height=300,
         padding={'left': 28, 'right': 36, 'top': 22, 'bottom': 8},
-    ).configure_view(stroke=None)
+    ))
 
 
 def criar_grafico_perfis(results, dimension):
@@ -1125,7 +1141,10 @@ def criar_grafico_perfis(results, dimension):
         label_map = PROFILE_LABELS
         height = max(350, 72 * len(labels))
     elif dimension == 'work_experience':
-        label_map = {group: group + ' anos' for group in labels}
+        label_map = {
+            group: '21 anos ou mais' if group == '21+' else group + ' anos'
+            for group in labels
+        }
         height = 310
     else:
         raise ValueError('Dimensão de perfil não suportada')
@@ -1154,9 +1173,9 @@ def criar_grafico_perfis(results, dimension):
                 axis=alt.Axis(labelLimit=200, labelPadding=10, labelFontSize=12)),
         yOffset=alt.YOffset('indicador:N', sort=metric_order,
                             scale=alt.Scale(paddingInner=0.28, paddingOuter=0.16)),
-        color=alt.Color('indicador:N', title=None, scale=alt.Scale(
+        color=alt.Color('indicador:N', title='Inteligência artificial', scale=alt.Scale(
             domain=metric_order, range=METRIC_COLORS),
-            legend=alt.Legend(orient='bottom', symbolSize=90)),
+            legend=alt.Legend(orient='right', direction='vertical')),
         tooltip=[
             alt.Tooltip('grupo:N', title='Grupo'),
             alt.Tooltip('indicador:N', title='Indicador'),
@@ -1169,10 +1188,10 @@ def criar_grafico_perfis(results, dimension):
     bars = base.mark_bar(size=13, cornerRadiusEnd=2)
     labels = base.mark_text(align='left', baseline='middle', dx=7, fontSize=11,
                             color='#E5E7EB').encode(text='rotulo:N')
-    return (bars + labels).properties(
+    return _estilo_dashboard((bars + labels).properties(
         width='container', height=height,
         padding={'left': 8, 'right': 42, 'top': 8, 'bottom': 8},
-    ).configure_view(stroke=None)
+    ))
 
 
 def criar_grafico_capacidade(results):
@@ -1204,7 +1223,7 @@ def criar_grafico_capacidade(results):
         text='rotulo:N',
         color=alt.condition(alt.datum.percentage >= 30, alt.value('white'), alt.value(TEXTO_ESCURO)),
     )
-    return (cells + labels).properties(width='container', height=240).configure_view(stroke=None)
+    return _estilo_dashboard((cells + labels).properties(width='container', height=240))
 
 
 def criar_grafico_mudanca(results):
@@ -1215,13 +1234,13 @@ def criar_grafico_mudanca(results):
     rows['frequencia'] = rows['group'].map(FREQUENCY_LABELS)
     rows['mudanca'] = rows['category'].map(CHANGE_LABELS)
     rows['ordem'] = rows['category'].map({key: index for index, key in enumerate(CHANGE_LABELS)})
-    return alt.Chart(rows).mark_bar(size=32).encode(
+    return _estilo_dashboard(alt.Chart(rows).mark_bar(size=32).encode(
         x=alt.X('percentage:Q', stack='zero', title='Respostas dentro de cada frequência (%)',
                 scale=alt.Scale(domain=[0, 100]), axis=alt.Axis(format='.0f')),
         y=alt.Y('frequencia:N', title=None, sort=list(FREQUENCY_LABELS.values())),
         color=alt.Color('mudanca:N', title='Mudança percebida', scale=alt.Scale(
             domain=list(CHANGE_LABELS.values()), range=CORES_MUDANCA),
-            legend=alt.Legend(orient='bottom')),
+            legend=alt.Legend(orient='right', direction='vertical')),
         order=alt.Order('ordem:Q'),
         tooltip=[
             alt.Tooltip('frequencia:N', title='Frequência'),
@@ -1230,7 +1249,7 @@ def criar_grafico_mudanca(results):
             alt.Tooltip('valid_denominator:Q', title='Base válida', format=',d'),
             alt.Tooltip('percentage:Q', title='Dentro da frequência (%)', format='.1f'),
         ],
-    ).properties(width='container', height=245).configure_view(stroke=None)
+    ).properties(width='container', height=245))
 
 
 def criar_grafico_frustracoes(results):
@@ -1261,10 +1280,10 @@ def criar_grafico_frustracoes(results):
                             fontSize=12, color='#E5E7EB').encode(
         text=alt.Text('percentage:Q', format='.1f')
     )
-    return (bars + labels).properties(
+    return _estilo_dashboard((bars + labels).properties(
         width='container', height=245,
         padding={'left': 8, 'right': 38, 'top': 8, 'bottom': 8},
-    ).configure_view(stroke=None)
+    ))
 
 
 def criar_grafico_workflow(results):
@@ -1310,7 +1329,7 @@ def criar_grafico_workflow(results):
                 axis=alt.Axis(labelLimit=210, labelPadding=10)),
         color=alt.Color('situacao:N', title=None, scale=alt.Scale(
             domain=list(labels.values()), range=colors),
-            legend=alt.Legend(orient='bottom')),
+            legend=alt.Legend(orient='right', direction='vertical')),
         tooltip=[
             alt.Tooltip('tarefa:N', title='Tarefa'),
             alt.Tooltip('situacao_tooltip:N', title='Situação'),
@@ -1321,8 +1340,8 @@ def criar_grafico_workflow(results):
     )
     zero = alt.Chart(pd.DataFrame({'zero': [0]})).mark_rule(
         color='#B8C0CC', opacity=0.55, strokeWidth=1
-    ).encode(x=alt.X('zero:Q', scale=x_scale, axis=None))
-    return (bars + zero).properties(
+    ).encode(x=alt.X('zero:Q', scale=x_scale))
+    return _estilo_dashboard((bars + zero).properties(
         width='container', height=390,
         padding={'left': 8, 'right': 28, 'top': 8, 'bottom': 8},
-    ).configure_view(stroke=None)
+    ))
